@@ -75,7 +75,8 @@ void main() {
 					//also make colors less intense when the block light level is high.
 					shadowLightColor.rgb = mix(shadowLightColor.rgb, vec3(1.0), lm.x);
 					//apply the color.
-					color.rgb *= shadowLightColor.rgb;
+					float shadowFactor = 1.0 - ShadowBrightnessAdjusted(lm.x);
+					color.rgb *= mix(vec3(1.0), shadowLightColor.rgb, shadowFactor);
 				}
 			#endif
 		}
@@ -84,6 +85,11 @@ void main() {
 
 	// Lighting
 
+	// Adjust lightmap coords
+	lm.x = pow(lm.x, 4.0);
+	// Avoids weird issues when lm.x is 0 or 1
+	lm.x = clamp(lm.x, 1.0/32.0, 31.0/32.0);
+
 	color *= texture2D(lightmap, lm);
 
 	// Darken shadowed regions
@@ -91,7 +97,7 @@ void main() {
 	color.rgb *= mix(vec3(1.0), shadowColor, shadowFactor);
 
 	// Diffuse lighting
-	//color.rgb *= mix(shadowColor, vec3(1.0), clamp(inShadow + clamp(shadowPos.w, 0.0, 1.0), 0.0, 1.0));
+	color.rgb *= mix(shadowColor, vec3(1.0), clamp(inShadow + clamp(shadowPos.w, 0.0, 1.0), 0.0, 1.0));
 
 	// Specular highlights
 	#if SPECULAR_HIGHLIGHTS == 1
@@ -103,7 +109,7 @@ void main() {
 	color.rgb *= mix(vec3(1.0), blockLightColor, lm.x);
 
 	// Fog
-	float fogFactor = (exp(-getFogDensity() * depth/far) - 1.0) * (1.0 - lm.x*0.6) + 1.0;
+	float fogFactor = (exp(-getFogDensity() * depth/far) - 1.0) * (1.0 - lm.x) + 1.0;
 	color.rgb = mix(fogColor, color.rgb, fogFactor);
 
 	//color.rgb = pow(color.rgb, vec3(1.0 / 2.2));
