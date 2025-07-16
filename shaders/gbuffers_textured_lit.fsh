@@ -112,8 +112,16 @@ void main() {
 	color.rgb *= mix(vec3(1.0), blockLightColor, lm.x);
 
 	// Fog
-	float fogFactor = (exp(-getFogDensity() * depth/far) - 1.0) * (1.0 - lm.x*0.6) + 1.0;
-	color.rgb = mix(fogColor, color.rgb, fogFactor);
+	//float fogFactor = (exp(-getFogDensity() * depth/far) - 1.0) * (1.0 - lm.x*0.6) + 1.0;
+	float fogFactorR = (exp(-0.5 * depth/far) - 1.0) * (1.0 - lm.x*0.6) + 1.0;
+	float fogFactorG = (exp(-0.5 * depth/far) - 1.0) * (1.0 - lm.x*0.6) + 1.0;
+	float fogFactorB = (exp(-1.0 * depth/far) - 1.0) * (1.0 - lm.x*0.6) + 1.0;
+
+	//float fogFactor = clamp(1.0 - depth/far, 0.0, 1.0);
+	//color.rgb = mix(fogColor, color.rgb, fogFactor);
+	color.r = mix(1.0, color.r, fogFactorR);
+	color.g = mix(1.0, color.g, fogFactorG);
+	color.b = mix(1.0, color.b, fogFactorB);
 
 	//color.rgb = pow(color.rgb, vec3(1.0 / 2.2));
 
