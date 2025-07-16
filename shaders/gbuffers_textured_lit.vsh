@@ -2,7 +2,6 @@
 
 uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
-uniform vec3 shadowLightPosition;
 
 in vec3 vaPosition;
 in vec3 vaNormal;
@@ -16,7 +15,7 @@ out float depth;
 out vec3 normal;
 
 #include "/distort.glsl"
-#include "conversions.glsl"
+#include "lib.glsl"
 
 void main() {
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;

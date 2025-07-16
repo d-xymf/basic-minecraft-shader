@@ -4,14 +4,11 @@ uniform sampler2D colortex0;
 uniform sampler2D colortex1;
 uniform sampler2D colortex4;
 uniform sampler2D depthtex0;
-uniform float far;
-uniform float near;
 uniform vec3 skyColor;
-uniform vec3 fogColor;
 
 in vec2 texcoord;
 
-#include "conversions.glsl"
+#include "lib.glsl"
 
 /* DRAWBUFFERS: 0 */
 layout(location = 0) out vec4 outColor0;
@@ -36,27 +33,29 @@ vec3 calcSkyColor(vec3 pos) {
 void main() {
 	vec4 color = texture(colortex0, texcoord);
 
-	float depth = texture(depthtex0, texcoord).r;
-
-	vec3 normal = texture(colortex1, texcoord).xyz * 2.0 - 1.0;
-
 	float water = texture(colortex4, texcoord).r;
 
-	vec3 screenPos = vec3(texcoord, depth);
-
-	vec3 eyePos = ViewPosToEyePos(ScreenPosToViewPos(screenPos));
-	vec3 rayDir = normalize(eyePos);
-
-	float accuracy = length(eyePos) * 0.03;
-
-	// Reflect ray
-	rayDir = rayDir - 2.0 * dot(normal, rayDir) * normal;
-
-	vec3 rayPos = eyePos + rayDir * accuracy;
-
-	vec3 reflection = calcSkyColor(EyePosToViewPos(rayDir));
+	vec3 debug = vec3(0.0);
 
 	if(water >= 0.1) {
+
+		float depth = texture(depthtex0, texcoord).r;
+		vec3 normal = texture(colortex1, texcoord).xyz * 2.0 - 1.0;
+		vec3 screenPos = vec3(texcoord, depth);
+		vec3 eyePos = ViewPosToEyePos(ScreenPosToViewPos(screenPos));
+		vec3 rayDir = normalize(eyePos);
+		float hit = 0.0;
+
+		float accuracy = length(eyePos) * 0.03;
+
+		// Reflect ray
+		rayDir = rayDir - 2.0 * dot(normal, rayDir) * normal;
+
+		vec3 rayPos = eyePos + rayDir * accuracy;
+
+		vec3 reflection = calcSkyColor(EyePosToViewPos(rayDir));
+
+		// Ray marching SSR
 		for(int i = 0; i < 1000; i++) {
 			vec3 rayScreenPos = ViewPosToScreenPos(EyePosToViewPos(rayPos));
 
@@ -75,6 +74,8 @@ void main() {
 			if(rayDepth >= depthAtRayPos) {
 				if(abs(LinearDepth(rayDepth) - LinearDepth(depthAtRayPos)) < 0.2) {
 					// Collision within screen
+
+					hit = 1.0;
 					
 					reflection = texture(colortex0, rayScreenPos.xy).rgb;
 					break;
@@ -84,14 +85,18 @@ void main() {
 			// If not march ray
 			rayPos += rayDir * accuracy * 0.5;
 		}
-	}
 
-	vec4 waterColor = mix(vec4(1.0), vec4(0.7, 0.9, 1.0, 1.0), water);
-	float reflectionFactor = (1.0 + dot(normal, normalize(eyePos)));
-	color = mix(color * waterColor, vec4(reflection, 1.0), water * reflectionFactor);
-	//color = color * waterColor;
+		float reflectionFactor = (1.0 + dot(normal, normalize(eyePos)));
+		color.rgb = mix(color.rgb * waterColor, reflection, reflectionFactor);
+		
+		// Phong specular highlights
+		vec3 lightDirection = normalize(ViewPosToEyePos(shadowLightPosition));
+		vec3 specular = vec3(0.7) * smoothstep(0.9, 1.0, dot(rayDir, lightDirection));
+		debug = normal;
+		color.rgb += specular * (1.0 - hit);
+	}
 
 	//outColor0 = mix(vec4(0.0, 0.0, 0.0, 1.0), vec4(reflection, 1.0), water * reflectionFactor);
 	outColor0 = color;
-	//outColor0 = vec4(water);
+	//outColor0 = vec4(debug - vec3(0.0, 1.0, 0.0), 1.0);
 }

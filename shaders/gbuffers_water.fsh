@@ -11,10 +11,13 @@ uniform sampler2D shadowcolor0;
 uniform sampler2D shadowtex0;
 uniform sampler2D shadowtex1;
 uniform sampler2D gtexture;
+uniform float frameTimeCounter;
 
 in vec2 lmcoord;
 in vec2 texcoord;
 in vec4 glcolor;
+in vec3 vertexPosition;
+in vec3 worldPosition;
 in vec4 shadowPos;
 in float depth;
 in vec3 normal;
@@ -24,7 +27,8 @@ const bool shadowtex0Nearest = true;
 const bool shadowtex1Nearest = true;
 
 #include "distort.glsl"
-#include "lighting.glsl"
+#include "lib.glsl"
+#include "waves.glsl"
 
 /* DRAWBUFFERS: 041 */
 layout(location = 0) out vec4 outColor0;
@@ -83,6 +87,21 @@ void main() {
 	}
 
 
+	// Calculate normals
+	vec3 waveNormal = normal;
+	if(dot(waveNormal, vec3(0.0, 1.0, 0.0)) > 0.9)
+	{
+		// Vertical displacement of vertices
+		float wave = getWaves(worldPosition.xz);
+		// Derivatives of wave in x and z direction using finite difference
+		float xderiv = waves_amplitude * (getWaves(worldPosition.xz + vec2(0.001, 0.0)) - wave) / 0.001;
+		float zderiv = waves_amplitude * (getWaves(worldPosition.xz + vec2(0.0, 0.001)) - wave) / 0.001;
+		// Calculate normal vector based on derivatives
+		vec3 xtan = vec3(1.0, xderiv, 0.0);
+		vec3 ztan = vec3(0.0, zderiv, 1.0);
+		waveNormal = normalize(cross(ztan, xtan));
+	}
+
 	// Lighting
 
 	color *= texture2D(lightmap, lm);
@@ -95,10 +114,10 @@ void main() {
 	//color.rgb *= mix(shadowColor, vec3(1.0), clamp(inShadow + clamp(shadowPos.w, 0.0, 1.0), 0.0, 1.0));
 
 	// Specular highlights
-	#if SPECULAR_HIGHLIGHTS == 1
-		vec3 specular = specularColor * PhongSpecular(specularIntensity, specularExp) * (1.0 - rainStrength) * GetSunVisibility() * (1.0 - inShadow);
-		color.rgb += specular;
-	#endif
+	// Not correct pls fix
+	vec3 specular = specularColor * PhongSpecular(specularIntensity, specularExp, GetShadowLightDirection(), GetCameraDirection(vertexPosition), normal);
+	specular *= (1.0 - rainStrength) * GetSunVisibility() * (1.0 - inShadow);
+	color.rgb += specular;
 
 	// Brighten light from light sources
 	color.rgb *= mix(vec3(1.0), blockLightColor, lm.x);
@@ -109,9 +128,9 @@ void main() {
 
 	//color.rgb = pow(color.rgb, vec3(1.0 / 2.2));
 
-	//outColor0 = vec4(0.0, 0.0, 0.0, 1.0);
 	outColor0 = vec4(0.0, 0.0, 0.0, 0.0);
+	//outColor0 = vec4(worldPosition, 1.0);
 	//outColor0 = vec4(color);
 	outColor1 = vec4(1.0);
-	outColor2 = vec4(normal * 0.5 + 0.5, 1.0);
+	outColor2 = vec4(waveNormal * 0.5 + 0.5, 1.0);
 }

@@ -15,6 +15,7 @@ uniform sampler2D gtexture;
 in vec2 lmcoord;
 in vec2 texcoord;
 in vec4 glcolor;
+in vec3 vertexPosition;
 in vec4 shadowPos;
 in float depth;
 in vec3 normal;
@@ -24,7 +25,7 @@ const bool shadowtex0Nearest = true;
 const bool shadowtex1Nearest = true;
 
 #include "distort.glsl"
-#include "lighting.glsl"
+#include "/lib.glsl"
 
 /* DRAWBUFFERS: 01 */
 layout(location = 0) out vec4 outColor0;
@@ -101,7 +102,9 @@ void main() {
 
 	// Specular highlights
 	#if SPECULAR_HIGHLIGHTS == 1
-		vec3 specular = specularColor * PhongSpecular(specularIntensity, specularExp) * (1.0 - rainStrength) * GetSunVisibility() * (1.0 - inShadow);
+	// not rly correct
+		vec3 specular = specularColor * PhongSpecular(specularIntensity, specularExp, GetShadowLightDirection(), GetCameraDirection(vertexPosition), normal);
+		specular *= (1.0 - rainStrength) * GetSunVisibility() * (1.0 - inShadow);
 		color.rgb += specular;
 	#endif
 
@@ -109,7 +112,7 @@ void main() {
 	color.rgb *= mix(vec3(1.0), blockLightColor, lm.x);
 
 	// Fog
-	float fogFactor = (exp(-getFogDensity() * depth/far) - 1.0) * (1.0 - lm.x) + 1.0;
+	float fogFactor = (exp(-getFogDensity() * depth/far) - 1.0) * (1.0 - lm.x*0.6) + 1.0;
 	color.rgb = mix(fogColor, color.rgb, fogFactor);
 
 	//color.rgb = pow(color.rgb, vec3(1.0 / 2.2));
