@@ -111,7 +111,7 @@ void main() {
 
 	//outColor0 = vec4(0.0, 0.0, 0.0, 1.0);
 	outColor0 = vec4(0.0, 0.0, 0.0, 0.0);
-	//outColor0 = vec4(normal, 1.0);
+	//outColor0 = vec4(color);
 	outColor1 = vec4(1.0);
 	outColor2 = vec4(normal * 0.5 + 0.5, 1.0);
 }

@@ -1,7 +1,7 @@
 #version 330 compatibility
 
 #define WAVING_WATER // Waving water
-#define waves_amplitude 0.65    //[0.55 0.65 0.75 0.85 0.95 1.05 1.15 1.25 1.35 1.45 1.55 1.65 1.75 1.85 1.95 2.05]
+#define waves_amplitude 0.4    //[0.05 0.1 0.15 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9]
 
 uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
@@ -25,6 +25,44 @@ float PI = 3.14159265;
 
 #include "/distort.glsl"
 #include "conversions.glsl"
+
+float getWaves(vec2 coords)
+{
+	// Sum together several octaves of sine waves
+
+	// Starting values, these will change with each iteration
+    float period = 4.0;
+    float wavelength = 4.0;
+    float direction = 1.0;
+    float amplitude = 0.15;
+    float offset = 0.0;
+
+    float sum = 0.0;
+	float sumOfAmps = 0.0;
+    
+    int iterations = 10;
+    for(int i = 0; i < iterations; i++)
+    {
+        float xComponent = cos(direction);
+        float yComponent = sin(direction);
+
+        float wave = amplitude * sin(2.0*PI *(frameTimeCounter/period + (coords.x*xComponent + coords.y*yComponent)/wavelength + offset));
+        
+        sum += wave;
+		sumOfAmps += amplitude;
+        
+		// Modify wave properties for next iteration
+        period *= 0.91;
+        wavelength *= 0.93;
+        amplitude *= 0.87;
+        direction += float(i) * 11.258912;
+        offset += 13.237894;
+    }
+    
+	// exp to get a better wave shape and to normalize wave to be from 0 to 1
+	// - 0.4 to roughly center the wave vertically
+    return exp(sum/sumOfAmps - 1.0) - 0.4;
+}
 
 void main() {
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
@@ -57,16 +95,15 @@ void main() {
 	}
 
 #ifdef WAVING_WATER
-	float fy = fract(worldPosition.y + 0.001);
-	float wave = 0.05 * sin(2 * PI * (frameTimeCounter*0.8 + worldPosition.x /  2.5 + worldPosition.z / 5.0))
-				+ 0.05 * sin(2 * PI * (frameTimeCounter*0.6 + worldPosition.x / 6.0 + worldPosition.z /  12.0));
-	worldPosition.y += clamp(wave, -fy, 1.0-fy)*waves_amplitude;
-	float xderiv = 0.05 * cos(2 * PI * (frameTimeCounter*0.8 + worldPosition.x /  2.5 + worldPosition.z / 5.0)) * 2*PI / 2.5
-				+ 0.05 * cos(2 * PI * (frameTimeCounter*0.6 + worldPosition.x / 6.0 + worldPosition.z /  12.0)) * 2*PI / 6;
-	float zderiv = 0.05 * cos(2 * PI * (frameTimeCounter*0.8 + worldPosition.x /  2.5 + worldPosition.z / 5.0)) * 2*PI / 5
-				+ 0.05 * cos(2 * PI * (frameTimeCounter*0.6 + worldPosition.x / 6.0 + worldPosition.z /  12.0)) * 2*PI / 12;
-	vec3 xtan = vec3(1.0, xderiv * waves_amplitude, 0.0);
-	vec3 ztan = vec3(0.0, zderiv * waves_amplitude, 1.0);
+	// Vertical displacement of vertices
+	float wave = getWaves(worldPosition.xz);
+	worldPosition.y += wave*waves_amplitude;
+	// Derivatives of wave in x and z direction using finite difference
+	float xderiv = waves_amplitude * (getWaves(worldPosition.xz + vec2(0.01, 0.0)) - wave) / 0.01;
+	float zderiv = waves_amplitude * (getWaves(worldPosition.xz + vec2(0.0, 0.01)) - wave) / 0.01;
+	// Calculate normal vector based on derivatives
+	vec3 xtan = vec3(1.0, xderiv, 0.0);
+	vec3 ztan = vec3(0.0, zderiv, 1.0);
 	normal = normalize(cross(ztan, xtan));
 #endif
 

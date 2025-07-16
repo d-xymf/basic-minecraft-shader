@@ -89,7 +89,9 @@ void main() {
 	vec4 waterColor = mix(vec4(1.0), vec4(0.7, 0.9, 1.0, 1.0), water);
 	float reflectionFactor = (1.0 + dot(normal, normalize(eyePos)));
 	color = mix(color * waterColor, vec4(reflection, 1.0), water * reflectionFactor);
+	//color = color * waterColor;
 
+	//outColor0 = mix(vec4(0.0, 0.0, 0.0, 1.0), vec4(reflection, 1.0), water * reflectionFactor);
 	outColor0 = color;
 	//outColor0 = vec4(water);
 }
