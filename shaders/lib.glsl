@@ -22,12 +22,12 @@ const float specularIntensity = 0.2;
 const float specularExp = 5.0;
 
 const vec3 blockLightColor = vec3(2.4, 1.3, 1.0);
-const vec3 shadowColor = vec3(0.0, 0.05, 0.1);
+const vec3 shadowColor = vec3(0.1, 0.1, 0.1);
 
 const vec3 fogCol = vec3(0.6, 0.75, 1.0);
 const vec3 fogLightCol = vec3(1.0, 0.6, 0.4);
 
-const float density = 1.0;
+const float density = 0.5;
 const float underWaterDensity = 5.0;
 const vec3 waterColor = vec3(0.7, 0.9, 1.0);
 
