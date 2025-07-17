@@ -31,29 +31,35 @@ const float density = 0.5;
 const float underWaterDensity = 5.0;
 const vec3 waterColor = vec3(0.7, 0.9, 1.0);
 
-vec3 GetCameraDirection(vec3 pos) {
-    return normalize(-pos);
+// Direction from a given point to camera in feet player space
+vec3 GetCameraDirection(vec3 feetPlayerPos) {
+    return normalize(-feetPlayerPos);
 }
 
+// Sun's direction in feet player space
 vec3 GetSunDirection() {
-    return normalize(mat3(gbufferModelViewInverse) * sunPosition);
+    return normalize((gbufferModelViewInverse * vec4(sunPosition, 1.0)).xyz);
 }
 
+// 1 -> sun is up, 0 -> sun is down
 float GetSunVisibility() {
     vec3 sunDirection = GetSunDirection();
     return clamp((dot(sunDirection, vec3(0, 1, 0)) + 0.05) * 10.0, 0.0, 1.0);
 }
 
+// Sun/Moon's direction in feet player space
 vec3 GetShadowLightDirection() {
-    return normalize(mat3(gbufferModelViewInverse) * shadowLightPosition);
+    return normalize((gbufferModelViewInverse * vec4(shadowLightPosition, 1.0)).xyz);
 }
 
+// Shadow brightness after accounting for block light levels, day/night and rain
 float ShadowBrightnessAdjusted(float lmx) {
     float adjusted = mix(SHADOW_BRIGHTNESS_NIGHT, SHADOW_BRIGHTNESS, GetSunVisibility());
     adjusted = mix(adjusted, 1.0, rainStrength);
     return mix(adjusted, 1.0, lmx);
 }
 
+// Simple specular highlights
 float PhongSpecular(float intensity, float exponent, vec3 camDir, vec3 lightDir, vec3 normal) {
 
     float specular = clamp(dot(normalize(camDir + lightDir), normal), 0.0, 1.0);
@@ -62,17 +68,23 @@ float PhongSpecular(float intensity, float exponent, vec3 camDir, vec3 lightDir,
     return specular;
 }
 
+// Dynamic fog density
 float getFogDensity() {
     return mix(density, underWaterDensity, isEyeInWater);
 }
 
+// 1 for daytime, 0 for nighttime
 float GetDay() {
     return 1.0;
 }
 
+// Dynamic fog color depending on daytime, rain, etc
 vec3 GetFogColor(float day) {
     return fogColor;
 }
+
+// ---------------------------------------------- Coordinate space conversions ----------------------------------------------
+
 
 vec3 ModelPosToViewPos(vec3 modelPos) {
     return (gl_ModelViewMatrix * vec4(modelPos, 1.0)).xyz;
