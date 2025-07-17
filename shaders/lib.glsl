@@ -26,6 +26,7 @@ const vec3 blockLightTint = vec3(1.5, 0.8, 0.2);
 //const vec3 blockLightColor = vec3(1.8, 1.2, 1.0);
 const vec3 shadowColor = vec3(0.2, 0.2, 0.3);
 const vec3 nightColor = vec3(0.01, 0.02, 0.1);
+const vec3 sunsetOrange = vec3(1.0, -0.1, -0.4);
 
 const vec3 waterTint = vec3(0.1, 0.2, 0.5);
 

@@ -29,10 +29,20 @@ float luminosity(vec3 color) {
 
 vec3 calcSkyColor(vec3 pos) {
 	float upDot = dot(pos, gbufferModelView[1].xyz); //not much, what's up with you?
-	vec3 lightCol = GetLightColor(GetSunVisibility(), rainStrength, isEyeInWater);
-	vec3 fogDensities = GetFogDensities(GetSunVisibility(), rainStrength, isEyeInWater);
+	float sunDot = dot(normalize(pos), normalize(sunPosition));
+	float sunVis = GetSunVisibility();
+
+	vec3 lightCol = GetLightColor(sunVis, rainStrength, isEyeInWater);
+	vec3 fogDensities = GetFogDensities(sunVis, rainStrength, isEyeInWater);
 	vec3 skyFogColor = mix(lightCol, skyColor, exp(-fogDensities));
-	return mix(GetSkyColor(GetSunVisibility(), rainStrength), skyFogColor, fogify(max(upDot, 0.0), 0.25));
+
+	vec3 sky = mix(GetSkyColor(sunVis, rainStrength), skyFogColor, fogify(max(upDot, 0.0), 0.25));
+
+	float sunset = 1.0 - 2.0 * abs(sunVis - 0.5);
+
+	sky += sunsetOrange * vec3(exp((sunDot - 1.0) * 1.0)) * sunset;
+	
+	return sky;
 }
 
 void main() {
