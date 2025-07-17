@@ -24,7 +24,6 @@ const float specularExp = 5.0;
 const vec3 blockLightColor = vec3(2.4, 1.3, 1.0);
 const vec3 shadowColor = vec3(0.1, 0.1, 0.1);
 
-const vec3 fogCol = vec3(0.6, 0.75, 1.0);
 const vec3 fogLightCol = vec3(1.0, 0.6, 0.4);
 
 const float density = 0.5;
@@ -44,7 +43,7 @@ vec3 GetSunDirection() {
 // 1 -> sun is up, 0 -> sun is down
 float GetSunVisibility() {
     vec3 sunDirection = GetSunDirection();
-    return clamp((dot(sunDirection, vec3(0, 1, 0)) + 0.05) * 10.0, 0.0, 1.0);
+    return clamp((dot(sunDirection, vec3(0, 1, 0)) + 0.3) * 2.0, 0.0, 1.0);
 }
 
 // Sun/Moon's direction in feet player space
@@ -78,9 +77,48 @@ float GetDay() {
     return 1.0;
 }
 
-// Dynamic fog color depending on daytime, rain, etc
-vec3 GetFogColor(float day) {
-    return fogColor;
+// Dynamic sky light color depending on daytime, rain, etc
+vec3 GetLightColor(float sunVis, float rain) {
+    vec3 dayCol = vec3(1.0, 1.0, 1.0);
+    vec3 sunsetCol = vec3(1.0, 1.0, 1.0);
+    vec3 nightCol = vec3(0.9, 0.9, 1.0);
+    vec3 rainCol = vec3(0.6, 0.6, 0.7);
+
+    vec3 light = vec3(0.0);
+
+    if(sunVis >= 0.5)
+    {
+        light = mix(sunsetCol, dayCol, sunVis * 2.0 - 1.0);
+    } else
+    {
+        light = mix(nightCol, sunsetCol, sunVis * 2.0);
+    }
+
+    light = mix(light, rainCol, rain);
+
+    return light;
+}
+
+// Dynamic fog densities depending on daytime, rain, etc
+vec3 GetFogDensities(float sunVis, float rain) {
+    vec3 dayDen = vec3(0.4, 0.6, 1.0);
+    vec3 sunsetDen = vec3(0.9, 0.4, 0.3);
+    vec3 nightDen = vec3(0.4, 0.5, 0.7);
+    vec3 rainDen = vec3(2.0, 2.0, 2.0);
+
+    vec3 fog = vec3(0.0);
+
+    if(sunVis >= 0.5)
+    {
+        fog = mix(sunsetDen, dayDen, sunVis * 2.0 - 1.0);
+    } else
+    {
+        fog = mix(nightDen, sunsetDen, sunVis * 2.0);
+    }
+
+    fog = mix(fog, rainDen, rain);
+
+    return fog;
 }
 
 // ---------------------------------------------- Coordinate space conversions ----------------------------------------------

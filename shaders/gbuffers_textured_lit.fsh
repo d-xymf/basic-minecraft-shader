@@ -98,7 +98,8 @@ void main() {
 	color.rgb *= mix(vec3(1.0), shadowColor, shadowFactor);
 
 	// Diffuse lighting
-	color.rgb *= mix(shadowColor, vec3(1.0), clamp(inShadow + clamp(shadowPos.w, 0.0, 1.0), 0.0, 1.0));
+	color.rgb *= mix(shadowColor, vec3(1.0), clamp(rainStrength + inShadow + clamp(shadowPos.w, 0.0, 1.0), 0.0, 1.0));
+	color.rgb *= mix(vec3(1.0), shadowColor, rainStrength * 0.5);
 
 	// Specular highlights
 	#if SPECULAR_HIGHLIGHTS == 1
@@ -113,19 +114,17 @@ void main() {
 
 	// Fog
 	//float fogFactor = (exp(-getFogDensity() * depth/far) - 1.0) * (1.0 - lm.x*0.6) + 1.0;
-	float fogFactorR = (exp(-0.5 * depth/far) - 1.0) * (1.0 - lm.x*0.6) + 1.0;
-	float fogFactorG = (exp(-0.5 * depth/far) - 1.0) * (1.0 - lm.x*0.6) + 1.0;
-	float fogFactorB = (exp(-1.0 * depth/far) - 1.0) * (1.0 - lm.x*0.6) + 1.0;
 
-	//float fogFactor = clamp(1.0 - depth/far, 0.0, 1.0);
-	//color.rgb = mix(fogColor, color.rgb, fogFactor);
-	color.r = mix(1.0, color.r, fogFactorR);
-	color.g = mix(1.0, color.g, fogFactorG);
-	color.b = mix(1.0, color.b, fogFactorB);
+	vec3 densities = GetFogDensities(GetSunVisibility(), rainStrength);
+
+	vec3 fogFactors = (exp(-densities * depth/far) - 1.0) * (1.0 - lm.x*0.6) + 1.0;
+
+	color.rgb = mix(GetLightColor(GetSunVisibility(), rainStrength), color.rgb, fogFactors);
 
 	//color.rgb = pow(color.rgb, vec3(1.0 / 2.2));
 
 	//outColor0 = vec4(lm.x, lm.y, 0.0, 1.0);
 	outColor0 = color;
+	//outColor0 = vec4(vec3(shadowFactor), 1.0);
 	outColor1 = vec4(normal * 0.5 + 0.5, 1.0);
 }
