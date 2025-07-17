@@ -42,7 +42,7 @@ vec3 GetSunDirection() {
 // 1 -> sun is up, 0 -> sun is down
 float GetSunVisibility() {
     vec3 sunDirection = GetSunDirection();
-    float sunVis = clamp((dot(sunDirection, vec3(0, 1, 0)) + 0.3) * 2.0, 0.0, 1.0);
+    float sunVis = clamp((dot(sunDirection, vec3(0, 1, 0)) + 0.3) * 1.0, 0.0, 1.0);
     return sunVis;
 }
 
@@ -75,7 +75,7 @@ float GetDay() {
 // Dynamic shadowlight (sun/moon) color depending on daytime, rain, etc
 vec3 GetShadowLightColor(float sunVis, float rain) {
     vec3 dayCol = vec3(1.8, 1.6, 1.5);
-    vec3 sunsetCol = vec3(1.8, 1.2, 0.8);
+    vec3 sunsetCol = vec3(2.0, 1.2, 1.0);
     vec3 nightCol = vec3(1.0, 1.0, 1.0);
     vec3 rainCol = vec3(1.0, 1.0, 1.0);
 
@@ -97,7 +97,7 @@ vec3 GetShadowLightColor(float sunVis, float rain) {
 // Dynamic sky color depending on daytime, rain, etc
 vec3 GetSkyColor(float sunVis, float rain) {
     vec3 dayCol = vec3(0.1, 0.4, 1.0);
-    vec3 sunsetCol = vec3(0.3, 0.2, 0.8);
+    vec3 sunsetCol = vec3(0.2, 0.2, 0.8);
     vec3 nightCol = vec3(0.0, 0.01, 0.05);
     vec3 rainCol = vec3(0.1, 0.12, 0.2);
 
@@ -119,7 +119,7 @@ vec3 GetSkyColor(float sunVis, float rain) {
 // Dynamic sky light color depending on daytime, rain, etc
 vec3 GetLightColor(float sunVis, float rain, float underwater) {
     vec3 dayCol = vec3(0.4, 0.8, 1.0);
-    vec3 sunsetCol = vec3(0.5, 0.5, 0.5);
+    vec3 sunsetCol = vec3(0.7, 0.5, 0.4);
     vec3 nightCol = vec3(0.2, 0.25, 0.3);
     vec3 rainCol = vec3(0.15, 0.18, 0.22);
     vec3 dayWaterCol = vec3(0.0, 0.1, 0.3);
@@ -145,7 +145,7 @@ vec3 GetLightColor(float sunVis, float rain, float underwater) {
 // Dynamic fog densities depending on daytime, rain, etc
 vec3 GetFogDensities(float sunVis, float rain, float underwater) {
     vec3 dayDen = vec3(0.8, 0.6, 1.0);
-    vec3 sunsetDen = vec3(0.9, 0.4, 0.3);
+    vec3 sunsetDen = vec3(0.8, 0.6, 1.0);
     vec3 nightDen = vec3(0.4, 0.5, 0.7);
     vec3 rainDen = vec3(1.5, 1.2, 1.0);
     vec3 waterDen = vec3(12.0, 8.0, 10.0);
