@@ -95,7 +95,7 @@ void main() {
 		
 		// Phong specular highlights
 		vec3 lightDirection = normalize(ViewPosToEyePos(shadowLightPosition));
-		vec3 specular = vec3(0.7) * smoothstep(0.9, 1.0, dot(rayDir, lightDirection));
+		vec3 specular = vec3(0.7) * smoothstep(0.97 - GetSunVisibility()*0.07, 1.0, dot(rayDir, lightDirection));
 		debug = normal;
 		color.rgb += mix(specular * (1.0 - hit), vec3(0.0), rainStrength);
 	}

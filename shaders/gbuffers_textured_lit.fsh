@@ -33,6 +33,8 @@ layout(location = 1) out vec4 outColor1;
 
 void main() {
 	vec4 color = texture(gtexture, texcoord) * glcolor;
+
+	//color.rgb = pow(color.rgb, vec3(2.2));
 	
 	if (color.a < alphaTestRef) {
 		discard;
@@ -87,9 +89,9 @@ void main() {
 	// Lighting
 
 	// Adjust lightmap coords
-	lm.x = pow(lm.x, 4.0);
+	//lm.x = pow(lm.x, 4.0);
 	// Avoids weird issues when lm.x is 0 or 1
-	lm.x = clamp(lm.x, 1.0/32.0, 31.0/32.0);
+	//lm.x = clamp(lm.x, 1.0/32.0, 31.0/32.0);
 
 	color *= texture2D(lightmap, lm);
 
@@ -98,10 +100,12 @@ void main() {
 	color.rgb *= mix(vec3(1.0), shadowColor, shadowFactor);
 
 	// Diffuse lighting
-	color.rgb *= mix(shadowColor, vec3(1.0), clamp(rainStrength + inShadow + clamp(shadowPos.w, 0.0, 1.0), 0.0, 1.0));
+	color.rgb *= mix(shadowColor, vec3(1.0), clamp(inShadow + ShadowBrightnessAdjusted(lm.x) + clamp(shadowPos.w, 0.0, 1.0), 0.0, 1.0));
+	color.rgb *= mix(shadowColor, vec3(1.0), clamp(lm.x + mix(GetSunVisibility(), 1.0, 0.2), 0.0, 1.0));
 	color.rgb *= mix(vec3(1.0), shadowColor, rainStrength * 0.5);
 
 	// Brighten light from light sources
+	//color.rgb *= mix(vec3(1.0), blockLightTint, lm.x);
 	color.rgb *= mix(vec3(1.0), blockLightColor, lm.x);
 
 	// Underwater stuff

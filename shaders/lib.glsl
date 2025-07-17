@@ -1,5 +1,5 @@
 #define SHADOW_BRIGHTNESS 0.2 //1.0: no shadows, 0.0: very dark shadows [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
-#define SHADOW_BRIGHTNESS_NIGHT 0.4 //1.0: no shadows, 0.0: very dark shadows [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
+#define SHADOW_BRIGHTNESS_NIGHT 0.6 //1.0: no shadows, 0.0: very dark shadows [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
 
 uniform float rainStrength;
 uniform vec3 sunPosition;
@@ -21,7 +21,9 @@ const vec3 specularColor = vec3(1.0, 1.0, 1.0);
 const float specularIntensity = 0.2;
 const float specularExp = 5.0;
 
-const vec3 blockLightColor = vec3(2.4, 1.3, 1.0);
+const vec3 blockLightColor = vec3(1.8, 1.2, 1.0);
+const vec3 blockLightTint = vec3(1.5, 0.8, 0.6);
+//const vec3 blockLightColor = vec3(1.8, 1.2, 1.0);
 const vec3 shadowColor = vec3(0.1, 0.1, 0.1);
 
 const vec3 waterTint = vec3(0.5, 0.8, 1.0);
@@ -39,7 +41,8 @@ vec3 GetSunDirection() {
 // 1 -> sun is up, 0 -> sun is down
 float GetSunVisibility() {
     vec3 sunDirection = GetSunDirection();
-    return clamp((dot(sunDirection, vec3(0, 1, 0)) + 0.3) * 2.0, 0.0, 1.0);
+    float sunVis = clamp((dot(sunDirection, vec3(0, 1, 0)) + 0.3) * 2.0, 0.0, 1.0);
+    return sunVis;
 }
 
 // Sun/Moon's direction in feet player space
@@ -72,9 +75,10 @@ float GetDay() {
 vec3 GetLightColor(float sunVis, float rain, float underwater) {
     vec3 dayCol = vec3(1.0, 1.0, 1.0);
     vec3 sunsetCol = vec3(1.0, 1.0, 1.0);
-    vec3 nightCol = vec3(0.9, 0.9, 1.0);
-    vec3 rainCol = vec3(0.6, 0.6, 0.7);
-    vec3 waterCol = vec3(0.1, 0.42, 0.6);
+    vec3 nightCol = vec3(0.6, 0.6, 0.7);
+    vec3 rainCol = vec3(0.6, 0.62, 0.7);
+    vec3 dayWaterCol = vec3(0.1, 0.42, 0.6);
+    vec3 nightWaterCol = vec3(0.05, 0.21, 0.4);
 
     vec3 light = vec3(0.0);
 
@@ -86,9 +90,9 @@ vec3 GetLightColor(float sunVis, float rain, float underwater) {
         light = mix(nightCol, sunsetCol, sunVis * 2.0);
     }
 
-    light = mix(light, rainCol, rain);
+    light *= mix(vec3(1.0), rainCol, rain);
 
-    light = mix(light, waterCol, underwater);
+    light = mix(light, mix(nightWaterCol, dayWaterCol, sunVis), underwater);
 
     return light;
 }

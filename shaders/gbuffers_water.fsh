@@ -152,7 +152,7 @@ void main() {
 	{
 		outColor0 = color;
 	}
-	//outColor0 = vec4(worldPosition, 1.0);
+	//outColor0 = vec4(vec3(playerMood), 1.0);
 	//if(water) outColor0 = vec4(1.0);
 	if(water)
 	{
