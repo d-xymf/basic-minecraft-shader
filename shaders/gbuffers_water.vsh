@@ -2,6 +2,7 @@
 
 uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
+uniform float frameTimeCounter;
 
 in vec3 vaPosition;
 in vec3 vaNormal;
@@ -16,8 +17,6 @@ out vec3 worldPosition;
 out float depth;
 out vec3 normal;
 out float blockId;
-
-uniform float frameTimeCounter;
 
 #include "/distort.glsl"
 #include "lib.glsl"

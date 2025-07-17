@@ -1,5 +1,6 @@
 #version 330 compatibility
 
+uniform sampler2D gtexture;
 uniform sampler2D colortex0;
 uniform sampler2D colortex1;
 uniform sampler2D colortex4;
@@ -101,5 +102,6 @@ void main() {
 
 	//outColor0 = mix(vec4(0.0, 0.0, 0.0, 1.0), vec4(reflection, 1.0), water * reflectionFactor);
 	outColor0 = color;
+	//outColor0 = texture(gtexture, texcoord);
 	//outColor0 = vec4(debug - vec3(0.0, 1.0, 0.0), 1.0);
 }

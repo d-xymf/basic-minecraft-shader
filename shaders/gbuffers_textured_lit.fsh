@@ -101,19 +101,15 @@ void main() {
 	color.rgb *= mix(shadowColor, vec3(1.0), clamp(rainStrength + inShadow + clamp(shadowPos.w, 0.0, 1.0), 0.0, 1.0));
 	color.rgb *= mix(vec3(1.0), shadowColor, rainStrength * 0.5);
 
-	// Specular highlights
-	#if SPECULAR_HIGHLIGHTS == 1
-	// not rly correct
-		vec3 specular = specularColor * PhongSpecular(specularIntensity, specularExp, GetShadowLightDirection(), GetCameraDirection(vertexPosition), normal);
-		specular *= (1.0 - rainStrength) * GetSunVisibility() * (1.0 - inShadow);
-		color.rgb += specular;
-	#endif
-
 	// Brighten light from light sources
 	color.rgb *= mix(vec3(1.0), blockLightColor, lm.x);
 
-	// Underwater tint
-	color.rgb *= mix(vec3(1.0), waterTint, isEyeInWater);
+	// Underwater stuff
+	if(isEyeInWater == 1.0)
+	{
+		color.rgb *= waterTint;
+	}
+
 
 	// Fog
 	vec3 densities = GetFogDensities(GetSunVisibility(), rainStrength, isEyeInWater);
@@ -124,8 +120,6 @@ void main() {
 
 	//color.rgb = pow(color.rgb, vec3(1.0 / 2.2));
 
-	//outColor0 = vec4(lm.x, lm.y, 0.0, 1.0);
 	outColor0 = color;
-	//outColor0 = vec4(vec3(shadowFactor), 1.0);
 	outColor1 = vec4(normal * 0.5 + 0.5, 1.0);
 }
