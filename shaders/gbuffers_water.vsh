@@ -5,6 +5,7 @@ uniform mat4 shadowProjection;
 
 in vec3 vaPosition;
 in vec3 vaNormal;
+in vec2 mc_Entity;
 
 out vec2 lmcoord;
 out vec2 texcoord;
@@ -14,6 +15,7 @@ out vec3 vertexPosition;
 out vec3 worldPosition;
 out float depth;
 out vec3 normal;
+out float blockId;
 
 uniform float frameTimeCounter;
 
@@ -31,6 +33,7 @@ void main() {
 	//depth = (gl_ProjectionMatrix * gl_ModelViewMatrix * gl_Vertex).z;
 	depth = length(viewPos.xyz);
 	normal = gl_Normal;
+	blockId = mc_Entity.x;
 
 	float lightDot = dot(normalize(shadowLightPosition), normalize(gl_NormalMatrix * gl_Normal));
 
@@ -52,8 +55,12 @@ void main() {
 	}
 
 	// Vertical displacement of vertices
-	float wave = getWaves(worldPosition.xz);
-	worldPosition.y += wave*waves_amplitude;
+	bool water = abs(blockId - 10060) < 0.1;
+	if(water)
+	{
+		float wave = getWaves(worldPosition.xz);
+		worldPosition.y += wave*waves_amplitude;
+	}
 
 	shadowPos.w = lightDot;
 	gl_Position = gl_ProjectionMatrix * vec4(WorldPosToViewPos(worldPosition), 1.0);

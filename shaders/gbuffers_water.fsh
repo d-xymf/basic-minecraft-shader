@@ -21,6 +21,7 @@ in vec3 worldPosition;
 in vec4 shadowPos;
 in float depth;
 in vec3 normal;
+in float blockId;
 
 const bool shadowcolor0Nearest = true;
 const bool shadowtex0Nearest = true;
@@ -86,23 +87,32 @@ void main() {
 		}
 	}
 
+	bool water = abs(blockId - 10060) < 0.1;
 
 	// Calculate normals
 	vec3 waveNormal = normal;
-	if(dot(waveNormal, vec3(0.0, 1.0, 0.0)) > 0.9)
+	if(water)
 	{
-		// Vertical displacement of vertices
-		float wave = getWaves(worldPosition.xz);
-		// Derivatives of wave in x and z direction using finite difference
-		float xderiv = waves_amplitude * (getWaves(worldPosition.xz + vec2(0.001, 0.0)) - wave) / 0.001;
-		float zderiv = waves_amplitude * (getWaves(worldPosition.xz + vec2(0.0, 0.001)) - wave) / 0.001;
-		// Calculate normal vector based on derivatives
-		vec3 xtan = vec3(1.0, xderiv, 0.0);
-		vec3 ztan = vec3(0.0, zderiv, 1.0);
-		waveNormal = normalize(cross(ztan, xtan));
+		if(dot(waveNormal, vec3(0.0, 1.0, 0.0)) > 0.9)
+		{
+			// Vertical displacement of vertices
+			float wave = getWaves(worldPosition.xz);
+			// Derivatives of wave in x and z direction using finite difference
+			float xderiv = waves_amplitude * (getWaves(worldPosition.xz + vec2(0.001, 0.0)) - wave) / 0.001;
+			float zderiv = waves_amplitude * (getWaves(worldPosition.xz + vec2(0.0, 0.001)) - wave) / 0.001;
+			// Calculate normal vector based on derivatives
+			vec3 xtan = vec3(1.0, xderiv, 0.0);
+			vec3 ztan = vec3(0.0, zderiv, 1.0);
+			waveNormal = normalize(cross(ztan, xtan));
+		}
 	}
 
 	// Lighting
+
+	// Adjust lightmap coords
+	lm.x = pow(lm.x, 4.0);
+	// Avoids weird issues when lm.x is 0 or 1
+	lm.x = clamp(lm.x, 1.0/32.0, 31.0/32.0);
 
 	color *= texture2D(lightmap, lm);
 
@@ -111,26 +121,47 @@ void main() {
 	color.rgb *= mix(vec3(1.0), shadowColor, shadowFactor);
 
 	// Diffuse lighting
-	//color.rgb *= mix(shadowColor, vec3(1.0), clamp(inShadow + clamp(shadowPos.w, 0.0, 1.0), 0.0, 1.0));
+	color.rgb *= mix(shadowColor, vec3(1.0), clamp(rainStrength + inShadow + clamp(shadowPos.w, 0.0, 1.0), 0.0, 1.0));
+	color.rgb *= mix(vec3(1.0), shadowColor, rainStrength * 0.5);
 
 	// Specular highlights
-	// Not correct pls fix
-	vec3 specular = specularColor * PhongSpecular(specularIntensity, specularExp, GetShadowLightDirection(), GetCameraDirection(vertexPosition), normal);
-	specular *= (1.0 - rainStrength) * GetSunVisibility() * (1.0 - inShadow);
-	color.rgb += specular;
+	#if SPECULAR_HIGHLIGHTS == 1
+	// not rly correct
+		vec3 specular = specularColor * PhongSpecular(specularIntensity, specularExp, GetShadowLightDirection(), GetCameraDirection(vertexPosition), normal);
+		specular *= (1.0 - rainStrength) * GetSunVisibility() * (1.0 - inShadow);
+		color.rgb += specular;
+	#endif
 
 	// Brighten light from light sources
 	color.rgb *= mix(vec3(1.0), blockLightColor, lm.x);
 
 	// Fog
-	float fogFactor = (exp(-getFogDensity() * depth/far) - 1.0) * (1.0 - lm.x*0.6) + 1.0;
-	color.rgb = mix(fogColor, color.rgb, fogFactor);
+	//float fogFactor = (exp(-getFogDensity() * depth/far) - 1.0) * (1.0 - lm.x*0.6) + 1.0;
+
+	vec3 densities = GetFogDensities(GetSunVisibility(), rainStrength);
+
+	vec3 fogFactors = (exp(-densities * depth/far) - 1.0) * (1.0 - lm.x*0.6) + 1.0;
+
+	color.rgb = mix(GetLightColor(GetSunVisibility(), rainStrength), color.rgb, fogFactors);
 
 	//color.rgb = pow(color.rgb, vec3(1.0 / 2.2));
 
-	outColor0 = vec4(0.0, 0.0, 0.0, 0.0);
+	if(water)
+	{
+		outColor0 = vec4(0.0, 0.0, 0.0, 0.0);
+	} else 
+	{
+		outColor0 = color;
+	}
 	//outColor0 = vec4(worldPosition, 1.0);
-	//outColor0 = vec4(color);
-	outColor1 = vec4(1.0);
+	//if(water) outColor0 = vec4(1.0);
+	if(water)
+	{
+		outColor1 = vec4(1.0);
+	} else
+	{
+		outColor1 = vec4(0.0);
+	}
+
 	outColor2 = vec4(waveNormal * 0.5 + 0.5, 1.0);
 }
