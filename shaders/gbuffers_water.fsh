@@ -87,19 +87,20 @@ void main() {
 		}
 	}
 
-	bool water = abs(blockId - 10060) < 0.1;
+	bool water = abs(blockId - 10060.0) < 0.1;
 
 	// Calculate normals
 	vec3 waveNormal = normal;
 	if(water)
 	{
-		if(dot(waveNormal, vec3(0.0, 1.0, 0.0)) > 0.9)
+		if(abs(dot(waveNormal, vec3(0.0, 1.0, 0.0))) > 0.9)
 		{
+			int iterations = 40;
 			// Vertical displacement of vertices
-			float wave = getWaves(worldPosition.xz);
+			float wave = getWaves(worldPosition.xz, iterations);
 			// Derivatives of wave in x and z direction using finite difference
-			float xderiv = waves_amplitude * (getWaves(worldPosition.xz + vec2(0.001, 0.0)) - wave) / 0.001;
-			float zderiv = waves_amplitude * (getWaves(worldPosition.xz + vec2(0.0, 0.001)) - wave) / 0.001;
+			float xderiv = waves_amplitude * (getWaves(worldPosition.xz + vec2(0.001, 0.0), iterations) - wave) / 0.001;
+			float zderiv = waves_amplitude * (getWaves(worldPosition.xz + vec2(0.0, 0.001), iterations) - wave) / 0.001;
 			// Calculate normal vector based on derivatives
 			vec3 xtan = vec3(1.0, xderiv, 0.0);
 			vec3 ztan = vec3(0.0, zderiv, 1.0);
@@ -136,13 +137,11 @@ void main() {
 	color.rgb *= mix(vec3(1.0), blockLightColor, lm.x);
 
 	// Fog
-	//float fogFactor = (exp(-getFogDensity() * depth/far) - 1.0) * (1.0 - lm.x*0.6) + 1.0;
-
-	vec3 densities = GetFogDensities(GetSunVisibility(), rainStrength);
+	vec3 densities = GetFogDensities(GetSunVisibility(), rainStrength, isEyeInWater);
 
 	vec3 fogFactors = (exp(-densities * depth/far) - 1.0) * (1.0 - lm.x*0.6) + 1.0;
 
-	color.rgb = mix(GetLightColor(GetSunVisibility(), rainStrength), color.rgb, fogFactors);
+	color.rgb = mix(GetLightColor(GetSunVisibility(), rainStrength, isEyeInWater), color.rgb, fogFactors);
 
 	//color.rgb = pow(color.rgb, vec3(1.0 / 2.2));
 

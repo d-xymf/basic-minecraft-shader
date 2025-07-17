@@ -58,7 +58,7 @@ void main() {
 	bool water = abs(blockId - 10060) < 0.1;
 	if(water)
 	{
-		float wave = getWaves(worldPosition.xz);
+		float wave = getWaves(worldPosition.xz, 10);
 		worldPosition.y += wave*waves_amplitude;
 	}
 

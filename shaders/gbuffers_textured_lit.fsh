@@ -112,14 +112,15 @@ void main() {
 	// Brighten light from light sources
 	color.rgb *= mix(vec3(1.0), blockLightColor, lm.x);
 
-	// Fog
-	//float fogFactor = (exp(-getFogDensity() * depth/far) - 1.0) * (1.0 - lm.x*0.6) + 1.0;
+	// Underwater tint
+	color.rgb *= mix(vec3(1.0), waterTint, isEyeInWater);
 
-	vec3 densities = GetFogDensities(GetSunVisibility(), rainStrength);
+	// Fog
+	vec3 densities = GetFogDensities(GetSunVisibility(), rainStrength, isEyeInWater);
 
 	vec3 fogFactors = (exp(-densities * depth/far) - 1.0) * (1.0 - lm.x*0.6) + 1.0;
 
-	color.rgb = mix(GetLightColor(GetSunVisibility(), rainStrength), color.rgb, fogFactors);
+	color.rgb = mix(GetLightColor(GetSunVisibility(), rainStrength, isEyeInWater), color.rgb, fogFactors);
 
 	//color.rgb = pow(color.rgb, vec3(1.0 / 2.2));
 

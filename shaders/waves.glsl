@@ -1,6 +1,6 @@
 const float waves_amplitude = 0.4;
 
-float getWaves(vec2 coords)
+float getWaves(vec2 coords, int iterations)
 {
     float PI = 3.14159265;
 
@@ -16,7 +16,6 @@ float getWaves(vec2 coords)
     float sum = 0.0;
 	float sumOfAmps = 0.0;
     
-    int iterations = 20;
     for(int i = 0; i < iterations; i++)
     {
         float xComponent = cos(direction);
@@ -28,7 +27,7 @@ float getWaves(vec2 coords)
 		sumOfAmps += amplitude;
         
 		// Modify wave properties for next iteration
-        period *= 0.91;
+        period *= 0.98;
         wavelength *= 0.93;
         amplitude *= 0.87;
         direction += float(i) * 11.258912;

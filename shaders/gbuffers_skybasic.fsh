@@ -15,8 +15,8 @@ float fogify(float x, float w) {
 
 vec3 calcSkyColor(vec3 pos) {
 	float upDot = dot(pos, gbufferModelView[1].xyz); //not much, what's up with you?
-	vec3 lightCol = GetLightColor(GetSunVisibility(), rainStrength);
-	vec3 fogDensities = GetFogDensities(GetSunVisibility(), rainStrength);
+	vec3 lightCol = GetLightColor(GetSunVisibility(), rainStrength, isEyeInWater);
+	vec3 fogDensities = GetFogDensities(GetSunVisibility(), rainStrength, isEyeInWater);
 	vec3 skyFogColor = mix(lightCol, skyColor, exp(-fogDensities));
 	return mix(skyColor, skyFogColor, fogify(max(upDot, 0.0), 0.25));
 }

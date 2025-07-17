@@ -24,11 +24,7 @@ const float specularExp = 5.0;
 const vec3 blockLightColor = vec3(2.4, 1.3, 1.0);
 const vec3 shadowColor = vec3(0.1, 0.1, 0.1);
 
-const vec3 fogLightCol = vec3(1.0, 0.6, 0.4);
-
-const float density = 0.5;
-const float underWaterDensity = 5.0;
-const vec3 waterColor = vec3(0.7, 0.9, 1.0);
+const vec3 waterTint = vec3(0.5, 0.8, 1.0);
 
 // Direction from a given point to camera in feet player space
 vec3 GetCameraDirection(vec3 feetPlayerPos) {
@@ -67,22 +63,18 @@ float PhongSpecular(float intensity, float exponent, vec3 camDir, vec3 lightDir,
     return specular;
 }
 
-// Dynamic fog density
-float getFogDensity() {
-    return mix(density, underWaterDensity, isEyeInWater);
-}
-
 // 1 for daytime, 0 for nighttime
 float GetDay() {
     return 1.0;
 }
 
 // Dynamic sky light color depending on daytime, rain, etc
-vec3 GetLightColor(float sunVis, float rain) {
+vec3 GetLightColor(float sunVis, float rain, float underwater) {
     vec3 dayCol = vec3(1.0, 1.0, 1.0);
     vec3 sunsetCol = vec3(1.0, 1.0, 1.0);
     vec3 nightCol = vec3(0.9, 0.9, 1.0);
     vec3 rainCol = vec3(0.6, 0.6, 0.7);
+    vec3 waterCol = vec3(0.1, 0.42, 0.6);
 
     vec3 light = vec3(0.0);
 
@@ -96,15 +88,18 @@ vec3 GetLightColor(float sunVis, float rain) {
 
     light = mix(light, rainCol, rain);
 
+    light = mix(light, waterCol, underwater);
+
     return light;
 }
 
 // Dynamic fog densities depending on daytime, rain, etc
-vec3 GetFogDensities(float sunVis, float rain) {
+vec3 GetFogDensities(float sunVis, float rain, float underwater) {
     vec3 dayDen = vec3(0.4, 0.6, 1.0);
     vec3 sunsetDen = vec3(0.9, 0.4, 0.3);
     vec3 nightDen = vec3(0.4, 0.5, 0.7);
     vec3 rainDen = vec3(2.0, 2.0, 2.0);
+    vec3 waterDen = vec3(12.0, 8.0, 10.0);
 
     vec3 fog = vec3(0.0);
 
@@ -117,6 +112,8 @@ vec3 GetFogDensities(float sunVis, float rain) {
     }
 
     fog = mix(fog, rainDen, rain);
+
+    fog = mix(fog, waterDen, underwater);
 
     return fog;
 }

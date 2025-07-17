@@ -19,9 +19,16 @@ void main() {
 		}
 		else {
 	#endif
+
+		if(abs(mc_Entity.x - 10060.0) < 0.1)
+		{
+			// Exclude water
+			gl_Position = vec4(10.0);
+		} else {
 			gl_Position = ftransform();
 			//gl_Position.z += 0.1;
 			gl_Position.xyz = distort(gl_Position.xyz);
+		}
 	#ifdef EXCLUDE_FOLIAGE
 		}
 	#endif
