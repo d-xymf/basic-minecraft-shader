@@ -96,7 +96,7 @@ void main() {
 		vec3 lightDirection = normalize(ViewPosToEyePos(shadowLightPosition));
 		vec3 specular = vec3(0.7) * smoothstep(0.9, 1.0, dot(rayDir, lightDirection));
 		debug = normal;
-		color.rgb += specular * (1.0 - hit);
+		color.rgb += mix(specular * (1.0 - hit), vec3(0.0), rainStrength);
 	}
 
 	//outColor0 = mix(vec4(0.0, 0.0, 0.0, 1.0), vec4(reflection, 1.0), water * reflectionFactor);
