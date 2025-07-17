@@ -27,6 +27,8 @@ vec3 calcSkyColor(vec3 pos) {
 	float sunset = 1.0 - 2.0 * abs(sunVis - 0.5);
 
 	sky += sunsetOrange * vec3(exp((sunDot - 1.0) * 1.0)) * sunset;
+
+	sky += sunsetYellow * vec3(exp((sunDot - 1.0) * 7.0)) * sunset;
 	
 	return sky;
 }

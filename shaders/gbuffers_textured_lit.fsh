@@ -92,7 +92,7 @@ void main() {
 	// Avoids weird issues when lm.x is 0 or 1
 	//lm.x = clamp(lm.x, 1.0/32.0, 31.0/32.0);
 
-	color *= pow(texture2D(lightmap, vec2(31.0/32.0, lm.y)), vec4(2.2));
+	//color *= pow(texture2D(lightmap, vec2(31.0/32.0, lm.y)), vec4(2.2));
 
 	lm.x = pow(lm.x, 3.0);
 
@@ -100,17 +100,21 @@ void main() {
 	float shadowFactor = mix(inShadow, 0.0, ShadowBrightnessAdjusted(lm.x));
 	color.rgb *= mix(vec3(1.0), shadowColor, shadowFactor);
 
+	// Darken with lightmap
+	color.rgb *= mix(lmShadowColor, vec3(1.0), clamp(lm.y + lm.x, 0.0, 1.0));
+
 	// Diffuse lighting
-	color.rgb *= mix(shadowColor, vec3(1.0), clamp(inShadow + ShadowBrightnessAdjusted(lm.x) + clamp(shadowPos.w, 0.0, 1.0), 0.0, 1.0));
+	float sunDot = clamp(shadowPos.w, 0.0, 1.0);
+	color.rgb *= mix(shadowColor, vec3(1.0), clamp(inShadow + ShadowBrightnessAdjusted(lm.x) + sunDot, 0.0, 1.0));
 	color.rgb *= mix(nightColor, vec3(1.0), clamp(lm.x + GetSunVisibility(), 0.0, 1.0)); // darken overall in night
 	color.rgb *= mix(vec3(1.0), shadowColor, rainStrength * 0.5);
 
 	// Brighten parts in direct sunlight
-	color.rgb *= mix(GetShadowLightColor(GetSunVisibility(), rainStrength), vec3(1.0), inShadow);
+	color.rgb *= mix(GetShadowLightColor(GetSunVisibility(), rainStrength), vec3(1.0), clamp(inShadow + 1.0 - sunDot, 0.0, 1.0));
 
 	// Brighten light from light sources
 	//color.rgb *= mix(vec3(1.0), blockLightTint, lm.x);
-	vec3 blockLight = mix(blockLightColor, vec3(1.0), GetSunVisibility() * 0.8);
+	vec3 blockLight = mix(blockLightColor, vec3(1.0), GetSunVisibility() * 0.9);
 	color.rgb *= mix(vec3(1.0), blockLight, lm.x);
 
 	// Underwater stuff
@@ -119,17 +123,18 @@ void main() {
 		color.rgb *= waterTint;
 	}
 
-
 	// Fog
 	vec3 densities = GetFogDensities(GetSunVisibility(), rainStrength, isEyeInWater);
-
+	densities = mix(caveFogDensities, densities, lm.y);
 	vec3 fogFactors = (exp(-densities * depth/far) - 1.0) * (1.0 - lm.x*0.6) + 1.0;
-
-	color.rgb = mix(color.rgb, GetLightColor(GetSunVisibility(), rainStrength, isEyeInWater), pow(1.0 - fogFactors, vec3(2.0)));
+	vec3 fogCol = GetLightColor(GetSunVisibility(), rainStrength, isEyeInWater);
+	//fogCol = mix(caveFogColor, fogCol, lm.y);
+	color.rgb = mix(color.rgb, fogCol, pow(1.0 - fogFactors, vec3(2.0)));
 
 	color.rgb = pow(color.rgb, vec3(1.0/2.2));
 
 	outColor0 = color;
+	//outColor0 = vec4(lm.y);
 	//outColor0 = texture2D(lightmap, vec2(31.0/32.0, lm.y));
 	outColor1 = vec4(normal * 0.5 + 0.5, 1.0);
 }

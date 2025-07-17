@@ -41,6 +41,8 @@ vec3 calcSkyColor(vec3 pos) {
 	float sunset = 1.0 - 2.0 * abs(sunVis - 0.5);
 
 	sky += sunsetOrange * vec3(exp((sunDot - 1.0) * 1.0)) * sunset;
+
+	sky += sunsetYellow * vec3(exp((sunDot - 1.0) * 7.0)) * sunset;
 	
 	return sky;
 }
@@ -54,6 +56,8 @@ void main() {
 
 	vec3 debug = vec3(0.0);
 
+	float sunVis = GetSunVisibility();
+
 	if(water >= 0.1) {
 
 		float depth = texture(depthtex0, texcoord).r;
@@ -63,11 +67,11 @@ void main() {
 		// Water fog
 		if(isEyeInWater == 0.0) {
 			//color.rgb *= waterTint;
-			vec3 densities = GetFogDensities(GetSunVisibility(), rainStrength, 1.0);
+			vec3 densities = GetFogDensities(sunVis, rainStrength, 1.0);
 
 			vec3 fogFactors = exp(-densities * (lineardepth1 - lineardepth0));
 
-			color.rgb = mix(color.rgb, GetLightColor(GetSunVisibility(), rainStrength, 1.0), pow(1.0 - fogFactors, vec3(2.0)));
+			color.rgb = mix(color.rgb, GetLightColor(sunVis, rainStrength, 1.0), pow(1.0 - fogFactors, vec3(2.0)));
 			//color.rgb = vec3(lineardepth1);
 		}
 
@@ -88,7 +92,7 @@ void main() {
 		vec3 reflection = calcSkyColor(EyePosToViewPos(rayDir));
 
 		// Ray marching SSR
-		for(int i = 0; i < 1000; i++) {
+		for(int i = 0; i < 100; i++) {
 			vec3 rayScreenPos = ViewPosToScreenPos(EyePosToViewPos(rayPos));
 
 			// Check if rayPos is outside of screen
@@ -98,13 +102,16 @@ void main() {
 			if(rayScreenPos.y > 1.0 || rayScreenPos.y < 0.0) {
 				break;
 			}
+			if(LinearDepth(rayScreenPos.z) > 1.0) {
+				break;
+			}
 
-			float rayDepth = rayScreenPos.z;
-			float depthAtRayPos = texture(depthtex0, rayScreenPos.xy).r;
+			float rayDepth = LinearDepth(rayScreenPos.z);
+			float depthAtRayPos = LinearDepth(texture(depthtex0, rayScreenPos.xy).r);
 
 			// Check if collision
 			if(rayDepth >= depthAtRayPos) {
-				if(abs(LinearDepth(rayDepth) - LinearDepth(depthAtRayPos)) < 0.2) {
+				if(abs(rayDepth - depthAtRayPos) < 0.2) {
 					// Collision within screen
 
 					hit = 1.0;
@@ -116,7 +123,8 @@ void main() {
 			}
 
 			// If not march ray
-			rayPos += rayDir * accuracy * 0.5;
+			rayPos += rayDir * 0.5;
+			debug = vec3(float(i/100.0));
 		}
 
 		float reflectionFactor = (1.0 - abs(dot(normal, normalize(-eyePos))));
@@ -124,14 +132,19 @@ void main() {
 		
 		// Phong specular highlights
 		vec3 lightDirection = normalize(ViewPosToEyePos(shadowLightPosition));
-		vec3 specular = vec3(0.7) * smoothstep(0.97 - GetSunVisibility()*0.07, 1.0, dot(rayDir, lightDirection));
-		debug = normal;
+		vec3 specular = 0.5*GetShadowLightColor(sunVis, rainStrength) * smoothstep(0.98 - sunVis*0.04, 1.0, dot(rayDir, lightDirection));
+		//debug = vec3(eyePos);
 		color.rgb += mix(specular * (1.0 - hit), vec3(0.0), rainStrength);
+
+		// Fog
+		vec3 densities = GetFogDensities(sunVis, rainStrength, isEyeInWater);
+		vec3 fogFactors = (exp(-densities * lineardepth0));
+		color.rgb = mix(color.rgb, GetLightColor(sunVis, rainStrength, isEyeInWater), pow(1.0 - fogFactors, vec3(2.0)));
 	}
 
 	//outColor0 = mix(vec4(0.0, 0.0, 0.0, 1.0), vec4(reflection, 1.0), water * reflectionFactor);
 	color.rgb = pow(color.rgb, vec3(1.0/2.2));
 	outColor0 = color;
 	//outColor0 = texture(gtexture, texcoord);
-	//outColor0 = vec4(debug - vec3(0.0, 1.0, 0.0), 1.0);
+	//outColor0 = vec4(debug, 1.0);
 }
