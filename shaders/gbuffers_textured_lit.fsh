@@ -24,6 +24,11 @@ const bool shadowcolor0Nearest = true;
 const bool shadowtex0Nearest = true;
 const bool shadowtex1Nearest = true;
 
+const vec3 lavaFogColor = vec3(1.0, 0.1, 0.0);
+const vec3 snowFogColor = vec3(0.9, 0.9, 1.0);
+const float lavaFogDen = 0.5;
+const float snowFogDen = 0.5;
+
 #include "distort.glsl"
 #include "/lib.glsl"
 
@@ -118,7 +123,7 @@ void main() {
 	color.rgb *= mix(vec3(1.0), blockLight, lm.x);
 
 	// Underwater stuff
-	if(isEyeInWater == 1.0)
+	if(isEyeInWater == 1)
 	{
 		color.rgb *= waterTint;
 	}
@@ -130,6 +135,13 @@ void main() {
 	vec3 fogCol = GetLightColor(GetSunVisibility(), rainStrength, isEyeInWater);
 	//fogCol = mix(caveFogColor, fogCol, lm.y);
 	color.rgb = mix(color.rgb, fogCol, pow(1.0 - fogFactors, vec3(2.0)));
+
+	if(isEyeInWater == 2) {
+		color.rgb = mix(color.rgb, lavaFogColor, clamp(depth*lavaFogDen, 0.0, 1.0));
+	}
+	if(isEyeInWater == 3) {
+		color.rgb = mix(color.rgb, snowFogColor, clamp(depth*snowFogDen, 0.0, 1.0));
+	}
 
 	color.rgb = pow(color.rgb, vec3(1.0/2.2));
 

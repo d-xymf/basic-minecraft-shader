@@ -67,11 +67,11 @@ void main() {
 		// Water fog
 		if(isEyeInWater == 0.0) {
 			//color.rgb *= waterTint;
-			vec3 densities = GetFogDensities(sunVis, rainStrength, 1.0);
+			vec3 densities = GetFogDensities(sunVis, rainStrength, 1);
 
 			vec3 fogFactors = exp(-densities * (lineardepth1 - lineardepth0));
 
-			color.rgb = mix(color.rgb, GetLightColor(sunVis, rainStrength, 1.0), pow(1.0 - fogFactors, vec3(2.0)));
+			color.rgb = mix(color.rgb, GetLightColor(sunVis, rainStrength, 1), pow(1.0 - fogFactors, vec3(2.0)));
 			//color.rgb = vec3(lineardepth1);
 		}
 

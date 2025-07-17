@@ -117,7 +117,7 @@ vec3 GetSkyColor(float sunVis, float rain) {
 }
 
 // Dynamic sky light color depending on daytime, rain, etc
-vec3 GetLightColor(float sunVis, float rain, float underwater) {
+vec3 GetLightColor(float sunVis, float rain, int underwater) {
     vec3 dayCol = vec3(0.4, 0.8, 1.0);
     vec3 sunsetCol = vec3(0.7, 0.5, 0.4);
     vec3 nightCol = vec3(0.2, 0.25, 0.3);
@@ -137,13 +137,15 @@ vec3 GetLightColor(float sunVis, float rain, float underwater) {
 
     light = mix(light, rainCol, rain);
 
-    light = mix(light, mix(nightWaterCol, dayWaterCol, sunVis), underwater);
+    if(underwater == 1) {
+        light = mix(nightWaterCol, dayWaterCol, sunVis);
+    }
 
     return light;
 }
 
 // Dynamic fog densities depending on daytime, rain, etc
-vec3 GetFogDensities(float sunVis, float rain, float underwater) {
+vec3 GetFogDensities(float sunVis, float rain, int underwater) {
     vec3 dayDen = vec3(0.8, 0.6, 1.2);
     vec3 sunsetDen = vec3(0.8, 0.6, 1.2);
     vec3 nightDen = vec3(0.4, 0.5, 0.7);
@@ -162,7 +164,9 @@ vec3 GetFogDensities(float sunVis, float rain, float underwater) {
 
     fog = mix(fog, rainDen, rain);
 
-    fog = mix(fog, waterDen, underwater);
+    if(underwater == 1) {
+        fog = waterDen;
+    }
 
     return fog;
 }
