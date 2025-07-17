@@ -38,12 +38,12 @@ layout(location = 2) out vec4 outColor2;
 
 void main() {
 	vec4 color = texture(gtexture, texcoord) * glcolor;
+
+	color.rgb = pow(color.rgb, vec3(2.2));
 	
 	if (color.a < alphaTestRef) {
 		discard;
 	}
-
-	//color.rgb = pow(color.rgb, vec3(2.2));
 
 	vec2 lm = lmcoord;
 
@@ -76,6 +76,7 @@ void main() {
 					//surface has translucent object between it and the sun. modify its color.
 					//if the block light is high, modify the color less.
 					vec4 shadowLightColor = texture2D(shadowcolor0, shadowPos.xy);
+					shadowLightColor.rgb = pow(shadowLightColor.rgb, vec3(2.2));
 					//make colors more intense when the shadow light color is more opaque.
 					shadowLightColor.rgb = mix(vec3(1.0), shadowLightColor.rgb, shadowLightColor.a);
 					//also make colors less intense when the block light level is high.
@@ -111,39 +112,39 @@ void main() {
 	// Lighting
 
 	// Adjust lightmap coords
-	lm.x = pow(lm.x, 4.0);
+	//lm.x = pow(lm.x, 4.0);
 	// Avoids weird issues when lm.x is 0 or 1
-	lm.x = clamp(lm.x, 1.0/32.0, 31.0/32.0);
+	//lm.x = clamp(lm.x, 1.0/32.0, 31.0/32.0);
 
-	color *= texture2D(lightmap, lm);
+	color *= pow(texture2D(lightmap, lm), vec4(2.2));
+
+	lm.x = pow(lm.x, 3.0);
 
 	// Darken shadowed regions
 	float shadowFactor = mix(inShadow, 0.0, ShadowBrightnessAdjusted(lm.x));
 	color.rgb *= mix(vec3(1.0), shadowColor, shadowFactor);
 
 	// Diffuse lighting
-	color.rgb *= mix(shadowColor, vec3(1.0), clamp(rainStrength + inShadow + clamp(shadowPos.w, 0.0, 1.0), 0.0, 1.0));
+	color.rgb *= mix(shadowColor, vec3(1.0), clamp(inShadow + ShadowBrightnessAdjusted(lm.x) + clamp(shadowPos.w, 0.0, 1.0), 0.0, 1.0));
+	color.rgb *= mix(nightColor, vec3(1.0), clamp(lm.x + GetSunVisibility(), 0.0, 1.0)); // darken overall in night
 	color.rgb *= mix(vec3(1.0), shadowColor, rainStrength * 0.5);
 
-	// Specular highlights
-	#if SPECULAR_HIGHLIGHTS == 1
-	// not rly correct
-		vec3 specular = specularColor * PhongSpecular(specularIntensity, specularExp, GetShadowLightDirection(), GetCameraDirection(vertexPosition), normal);
-		specular *= (1.0 - rainStrength) * GetSunVisibility() * (1.0 - inShadow);
-		color.rgb += specular;
-	#endif
+	// Brighten parts in direct sunlight
+	color.rgb *= mix(GetShadowLightColor(GetSunVisibility(), rainStrength), vec3(1.0), inShadow);
 
 	// Brighten light from light sources
-	color.rgb *= mix(vec3(1.0), blockLightColor, lm.x);
+	//color.rgb *= mix(vec3(1.0), blockLightTint, lm.x);
+	vec3 blockLight = mix(blockLightColor, vec3(1.0), GetSunVisibility() * 0.8);
+	color.rgb *= mix(vec3(1.0), blockLight, lm.x);
 
 	// Fog
 	vec3 densities = GetFogDensities(GetSunVisibility(), rainStrength, isEyeInWater);
 
 	vec3 fogFactors = (exp(-densities * depth/far) - 1.0) * (1.0 - lm.x*0.6) + 1.0;
 
-	color.rgb = mix(GetLightColor(GetSunVisibility(), rainStrength, isEyeInWater), color.rgb, fogFactors);
+	color.rgb = mix(color.rgb, GetLightColor(GetSunVisibility(), rainStrength, isEyeInWater), pow(1.0 - fogFactors, vec3(2.0)));
 
-	//color.rgb = pow(color.rgb, vec3(1.0 / 2.2));
+	color.rgb = pow(color.rgb, vec3(1.0/2.2));
 
 	if(water)
 	{

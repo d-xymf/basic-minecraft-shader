@@ -18,7 +18,7 @@ vec3 calcSkyColor(vec3 pos) {
 	vec3 lightCol = GetLightColor(GetSunVisibility(), rainStrength, isEyeInWater);
 	vec3 fogDensities = GetFogDensities(GetSunVisibility(), rainStrength, isEyeInWater);
 	vec3 skyFogColor = mix(lightCol, skyColor, exp(-fogDensities));
-	return mix(skyColor, skyFogColor, fogify(max(upDot, 0.0), 0.25));
+	return mix(GetSkyColor(GetSunVisibility(), rainStrength), skyFogColor, fogify(max(upDot, 0.0), 0.25));
 }
 
 vec3 screenToView(vec3 screenPos) {
@@ -37,5 +37,6 @@ void main() {
 		// Sky color
 		vec3 pos = screenToView(vec3(gl_FragCoord.xy / vec2(viewWidth, viewHeight), 1.0));
 		color = vec4(calcSkyColor(normalize(pos)), 1.0);
+		color.rgb = pow(color.rgb, vec3(1.0/2.2));
 	}
 }

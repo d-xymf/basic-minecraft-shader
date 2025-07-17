@@ -5,6 +5,7 @@ uniform sampler2D colortex0;
 uniform sampler2D colortex1;
 uniform sampler2D colortex4;
 uniform sampler2D depthtex0;
+uniform sampler2D depthtex1;
 uniform vec3 skyColor;
 
 in vec2 texcoord;
@@ -31,11 +32,13 @@ vec3 calcSkyColor(vec3 pos) {
 	vec3 lightCol = GetLightColor(GetSunVisibility(), rainStrength, isEyeInWater);
 	vec3 fogDensities = GetFogDensities(GetSunVisibility(), rainStrength, isEyeInWater);
 	vec3 skyFogColor = mix(lightCol, skyColor, exp(-fogDensities));
-	return mix(skyColor, skyFogColor, fogify(max(upDot, 0.0), 0.25));
+	return mix(GetSkyColor(GetSunVisibility(), rainStrength), skyFogColor, fogify(max(upDot, 0.0), 0.25));
 }
 
 void main() {
 	vec4 color = texture(colortex0, texcoord);
+
+	color.rgb = pow(color.rgb, vec3(2.2));
 
 	float water = texture(colortex4, texcoord).r;
 
@@ -44,6 +47,21 @@ void main() {
 	if(water >= 0.1) {
 
 		float depth = texture(depthtex0, texcoord).r;
+		float lineardepth0 = LinearDepth(depth);
+		float lineardepth1 = LinearDepth(texture(depthtex1, texcoord).r);
+
+		// Water fog
+		if(isEyeInWater == 0.0) {
+			//color.rgb *= waterTint;
+			vec3 densities = GetFogDensities(GetSunVisibility(), rainStrength, 1.0);
+
+			vec3 fogFactors = exp(-densities * (lineardepth1 - lineardepth0));
+
+			color.rgb = mix(color.rgb, GetLightColor(GetSunVisibility(), rainStrength, 1.0), pow(1.0 - fogFactors, vec3(2.0)));
+			//color.rgb = vec3(lineardepth1);
+		}
+
+
 		vec3 normal = texture(colortex1, texcoord).xyz * 2.0 - 1.0;
 		vec3 screenPos = vec3(texcoord, depth);
 		vec3 eyePos = ViewPosToEyePos(ScreenPosToViewPos(screenPos));
@@ -82,6 +100,7 @@ void main() {
 					hit = 1.0;
 					
 					reflection = texture(colortex0, rayScreenPos.xy).rgb;
+					reflection = pow(reflection, vec3(2.2));
 					break;
 				}
 			}
@@ -101,6 +120,7 @@ void main() {
 	}
 
 	//outColor0 = mix(vec4(0.0, 0.0, 0.0, 1.0), vec4(reflection, 1.0), water * reflectionFactor);
+	color.rgb = pow(color.rgb, vec3(1.0/2.2));
 	outColor0 = color;
 	//outColor0 = texture(gtexture, texcoord);
 	//outColor0 = vec4(debug - vec3(0.0, 1.0, 0.0), 1.0);

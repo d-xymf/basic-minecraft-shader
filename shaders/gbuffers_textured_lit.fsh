@@ -34,13 +34,11 @@ layout(location = 1) out vec4 outColor1;
 void main() {
 	vec4 color = texture(gtexture, texcoord) * glcolor;
 
-	//color.rgb = pow(color.rgb, vec3(2.2));
+	color.rgb = pow(color.rgb, vec3(2.2));
 	
 	if (color.a < alphaTestRef) {
 		discard;
 	}
-
-	//color.rgb = pow(color.rgb, vec3(2.2));
 
 	vec2 lm = lmcoord;
 
@@ -73,6 +71,7 @@ void main() {
 					//surface has translucent object between it and the sun. modify its color.
 					//if the block light is high, modify the color less.
 					vec4 shadowLightColor = texture2D(shadowcolor0, shadowPos.xy);
+					shadowLightColor.rgb = pow(shadowLightColor.rgb, vec3(2.2));
 					//make colors more intense when the shadow light color is more opaque.
 					shadowLightColor.rgb = mix(vec3(1.0), shadowLightColor.rgb, shadowLightColor.a);
 					//also make colors less intense when the block light level is high.
@@ -93,7 +92,9 @@ void main() {
 	// Avoids weird issues when lm.x is 0 or 1
 	//lm.x = clamp(lm.x, 1.0/32.0, 31.0/32.0);
 
-	color *= texture2D(lightmap, lm);
+	color *= pow(texture2D(lightmap, vec2(31.0/32.0, lm.y)), vec4(2.2));
+
+	lm.x = pow(lm.x, 3.0);
 
 	// Darken shadowed regions
 	float shadowFactor = mix(inShadow, 0.0, ShadowBrightnessAdjusted(lm.x));
@@ -101,12 +102,16 @@ void main() {
 
 	// Diffuse lighting
 	color.rgb *= mix(shadowColor, vec3(1.0), clamp(inShadow + ShadowBrightnessAdjusted(lm.x) + clamp(shadowPos.w, 0.0, 1.0), 0.0, 1.0));
-	color.rgb *= mix(shadowColor, vec3(1.0), clamp(lm.x + mix(GetSunVisibility(), 1.0, 0.2), 0.0, 1.0));
+	color.rgb *= mix(nightColor, vec3(1.0), clamp(lm.x + GetSunVisibility(), 0.0, 1.0)); // darken overall in night
 	color.rgb *= mix(vec3(1.0), shadowColor, rainStrength * 0.5);
+
+	// Brighten parts in direct sunlight
+	color.rgb *= mix(GetShadowLightColor(GetSunVisibility(), rainStrength), vec3(1.0), inShadow);
 
 	// Brighten light from light sources
 	//color.rgb *= mix(vec3(1.0), blockLightTint, lm.x);
-	color.rgb *= mix(vec3(1.0), blockLightColor, lm.x);
+	vec3 blockLight = mix(blockLightColor, vec3(1.0), GetSunVisibility() * 0.8);
+	color.rgb *= mix(vec3(1.0), blockLight, lm.x);
 
 	// Underwater stuff
 	if(isEyeInWater == 1.0)
@@ -120,10 +125,11 @@ void main() {
 
 	vec3 fogFactors = (exp(-densities * depth/far) - 1.0) * (1.0 - lm.x*0.6) + 1.0;
 
-	color.rgb = mix(GetLightColor(GetSunVisibility(), rainStrength, isEyeInWater), color.rgb, fogFactors);
+	color.rgb = mix(color.rgb, GetLightColor(GetSunVisibility(), rainStrength, isEyeInWater), pow(1.0 - fogFactors, vec3(2.0)));
 
-	//color.rgb = pow(color.rgb, vec3(1.0 / 2.2));
+	color.rgb = pow(color.rgb, vec3(1.0/2.2));
 
 	outColor0 = color;
+	//outColor0 = texture2D(lightmap, vec2(31.0/32.0, lm.y));
 	outColor1 = vec4(normal * 0.5 + 0.5, 1.0);
 }
