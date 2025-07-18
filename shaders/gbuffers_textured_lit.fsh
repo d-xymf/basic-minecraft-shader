@@ -22,11 +22,12 @@ const bool shadowtex1Nearest = true;
 #include "/lib.glsl"
 #include "shadow.glsl"
 
-/* DRAWBUFFERS: 0143 */
+/* DRAWBUFFERS: 01436 */
 layout(location = 0) out vec4 outColor0;
 layout(location = 1) out vec4 outColor1;
 layout(location = 2) out vec4 outColor2;
 layout(location = 3) out vec4 outColor3;
+layout(location = 4) out vec4 outColor4;
 
 void main() {
 	vec4 color = texture(gtexture, texcoord) * glcolor;
@@ -126,11 +127,15 @@ void main() {
 	color.rgb = mix(color.rgb, fogCol, pow(1.0 - fogFactors, vec3(2.0)));
 	vec3 fogMask = mix(vec3(0.0), vec3(1.0), pow(1.0 - fogFactors.g, 2.0));
 
+	outColor4 = vec4(0.0, 0.0, 0.0, 1.0);
+
 	if(isEyeInWater == 2) {
 		color.rgb = mix(color.rgb, lavaFogColor, clamp(depth*lavaFogDen, 0.0, 1.0));
+		outColor4 = mix(outColor4, vec4(1.0), clamp(depth*lavaFogDen, 0.0, 1.0));
 	}
 	if(isEyeInWater == 3) {
 		color.rgb = mix(color.rgb, snowFogColor, clamp(depth*snowFogDen, 0.0, 1.0));
+		outColor4 = mix(outColor4, vec4(1.0), clamp(depth*lavaFogDen, 0.0, 1.0));
 	}
 
 	color.rgb = pow(color.rgb, vec3(1.0/2.2));

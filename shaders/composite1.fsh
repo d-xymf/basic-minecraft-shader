@@ -7,6 +7,7 @@
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex1;
+uniform sampler2D colortex6;
 uniform sampler2D depthtex0;
 uniform sampler2D noisetex;
 
@@ -81,6 +82,7 @@ void main() {
 
     float linDepth = length(ScreenPosToViewPos(vec3(texcoord, depth)))/far;
     vec2 aoFalloff = mix(vec2(0.1, 0.4), vec2(0.03, 0.12), clamp(rainStrength + float(isEyeInWater), 0.0, 1.0));
+    aoFalloff *= 1.0 - texture(colortex6, texcoord).r;
     float ao = mix(1.0 - occlusion * SSAO_STRENGTH, 1.0, smoothstep(aoFalloff.x, aoFalloff.y, linDepth));
     color.rgb *= ao;
 #endif
