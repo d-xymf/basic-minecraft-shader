@@ -1,6 +1,3 @@
-#define SHADOW_BRIGHTNESS 0.0 //1.0: no shadows, 0.0: very dark shadows [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
-#define SHADOW_BRIGHTNESS_NIGHT 0.4 //1.0: no shadows, 0.0: very dark shadows [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
-
 uniform float rainStrength;
 uniform vec3 sunPosition;
 uniform mat4 gbufferModelViewInverse;
@@ -58,7 +55,7 @@ vec3 GetShadowLightDirection() {
 
 // Shadow brightness after accounting for block light levels, day/night and rain
 float ShadowBrightnessAdjusted(float lmx) {
-    float adjusted = mix(SHADOW_BRIGHTNESS_NIGHT, SHADOW_BRIGHTNESS, GetSunVisibility());
+    float adjusted = mix(0.4, 0.0, GetSunVisibility());
     adjusted = mix(adjusted, 1.0, rainStrength);
     return mix(adjusted, 1.0, lmx);
 }

@@ -1,7 +1,6 @@
 #version 460 compatibility
 
 #define COLORED_SHADOWS 1
-#define SPECULAR_HIGHLIGHTS 1 //Toggle Phong specular highlights [1 0]
 
 uniform float alphaTestRef = 0.1;
 uniform float worldTime;

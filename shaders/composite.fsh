@@ -1,5 +1,7 @@
 #version 330 compatibility
 
+#define SSR
+
 uniform sampler2D gtexture;
 uniform sampler2D colortex0;
 uniform sampler2D colortex1;
@@ -75,10 +77,10 @@ void main() {
 			//color.rgb = vec3(lineardepth1);
 		}
 
-
 		vec3 normal = texture(colortex1, texcoord).xyz * 2.0 - 1.0;
 		vec3 screenPos = vec3(texcoord, depth);
 		vec3 eyePos = ViewPosToEyePos(ScreenPosToViewPos(screenPos));
+
 		vec3 rayDir = normalize(eyePos);
 		float hit = 0.0;
 
@@ -90,7 +92,8 @@ void main() {
 		vec3 rayPos = eyePos + rayDir * accuracy;
 
 		vec3 reflection = calcSkyColor(EyePosToViewPos(rayDir));
-
+	
+	#ifdef SSR
 		// Ray marching SSR
 		for(int i = 0; i < 100; i++) {
 			vec3 rayScreenPos = ViewPosToScreenPos(EyePosToViewPos(rayPos));
@@ -126,10 +129,11 @@ void main() {
 			rayPos += rayDir * 0.5;
 			debug = vec3(float(i/100.0));
 		}
+	#endif
 
 		float reflectionFactor = (1.0 - abs(dot(normal, normalize(-eyePos))));
 		color.rgb = mix(color.rgb * waterTint, reflection, reflectionFactor);
-		
+
 		// Phong specular highlights
 		vec3 lightDirection = normalize(ViewPosToEyePos(shadowLightPosition));
 		vec3 specular = 0.5*GetShadowLightColor(sunVis, rainStrength) * smoothstep(0.98 - sunVis*0.04, 1.0, dot(rayDir, lightDirection));
