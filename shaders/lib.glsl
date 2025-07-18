@@ -11,7 +11,9 @@ uniform vec3 shadowLightPosition;
 uniform float near, far;
 uniform vec3 fogColor;
 uniform int isEyeInWater;
+uniform ivec2 eyeBrightnessSmooth;
 
+float inCave = 1.0 - float(eyeBrightnessSmooth.y)/240;
 vec3 eyeCameraPosition = cameraPosition + gbufferModelViewInverse[3].xyz;
 
 const vec3 specularColor = vec3(1.0, 1.0, 1.0);
@@ -28,6 +30,10 @@ const vec3 sunsetOrange = vec3(1.0, 0.1, -0.2);
 const vec3 sunsetYellow = vec3(0.5, 0.1, -0.1);
 const vec3 caveFogColor = vec3(0.2, 0.25, 0.3);
 const vec3 caveFogDensities = vec3(0.4, 0.5, 0.7);
+const vec3 lavaFogColor = vec3(1.0, 0.1, 0.0);
+const vec3 snowFogColor = vec3(0.9, 0.9, 1.0);
+const float lavaFogDen = 0.5;
+const float snowFogDen = 0.5;
 
 const vec3 waterTint = vec3(0.1, 0.2, 0.5);
 
@@ -118,7 +124,7 @@ vec3 GetSkyColor(float sunVis, float rain) {
 
 // Dynamic sky light color depending on daytime, rain, etc
 vec3 GetLightColor(float sunVis, float rain, int underwater) {
-    vec3 dayCol = vec3(0.4, 0.8, 1.0);
+    vec3 dayCol = vec3(1.0, 1.0, 1.0);
     vec3 sunsetCol = vec3(1.0, 0.8, 0.2);
     vec3 nightCol = vec3(0.2, 0.25, 0.3);
     vec3 dayRainCol = vec3(0.25, 0.28, 0.35);
@@ -140,8 +146,10 @@ vec3 GetLightColor(float sunVis, float rain, int underwater) {
 
     light = mix(light, rainCol, rain);
 
+    light = mix(light, nightCol, inCave);
+
     if(underwater == 1) {
-        light = mix(nightWaterCol, dayWaterCol, sunVis);
+        light = mix(nightWaterCol, dayWaterCol, sunVis * (1.0 - inCave));
     }
 
     return light;
@@ -166,6 +174,8 @@ vec3 GetFogDensities(float sunVis, float rain, int underwater) {
     }
 
     fog = mix(fog, rainDen, rain);
+
+    fog = mix(fog, nightDen, inCave);
 
     if(underwater == 1) {
         fog = waterDen;

@@ -1,6 +1,7 @@
 #version 330 compatibility
 
 uniform sampler2D colortex0;
+uniform float playerMood;
 
 in vec2 texcoord;
 
@@ -40,6 +41,8 @@ layout(location = 0) out vec4 outColor0;
 
 void main() {
 	vec4 color = texture(colortex0, texcoord);
+
+    //color = vec4(vec3(playerMood), 1.0);
 
     //color.rgb = aces_fitted(color.rgb);
 

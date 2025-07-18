@@ -5,6 +5,7 @@
 uniform sampler2D gtexture;
 uniform sampler2D colortex0;
 uniform sampler2D colortex1;
+uniform sampler2D colortex3;
 uniform sampler2D colortex4;
 uniform sampler2D colortex5;
 uniform sampler2D depthtex0;
@@ -38,6 +39,8 @@ void main() {
 	float sunVis = GetSunVisibility();
 
 	if(water >= 0.1) {
+
+		float lmyMask = texture(colortex3, texcoord).r;
 
 		float depth = texture(depthtex0, texcoord).r;
 		float lineardepth0 = LinearDepth(depth);
@@ -107,8 +110,9 @@ void main() {
 			debug = vec3(float(i/100.0));
 		}
 	#endif
-
-		float reflectionFactor = (1.0 - abs(dot(normal, normalize(-eyePos))));
+		
+		float reflectionFactor = (1.0 - abs(dot(normal, normalize(-eyePos)))) * lmyMask;
+		//float reflectionBright = dot(vec3(0.2126, 0.7152, 0.0722), reflection);
 		color.rgb = mix(color.rgb * waterTint, reflection, reflectionFactor);
 
 		// Phong specular highlights
@@ -193,5 +197,5 @@ void main() {
 	color.rgb = pow(color.rgb, vec3(1.0/2.2));
 	outColor0 = color;
 	//outColor0 = texture(gtexture, texcoord);
-	//outColor0 = vec4(debug, 1.0);
+	//outColor0 = texture(colortex3, texcoord);
 }

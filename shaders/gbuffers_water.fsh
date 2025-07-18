@@ -26,10 +26,11 @@ const bool shadowtex1Nearest = true;
 #include "waves.glsl"
 #include "shadow.glsl"
 
-/* DRAWBUFFERS: 041 */
+/* DRAWBUFFERS: 0413 */
 layout(location = 0) out vec4 outColor0;
 layout(location = 1) out vec4 outColor1;
 layout(location = 2) out vec4 outColor2;
+layout(location = 3) out vec4 outColor3;
 
 void main() {
 	vec4 color = texture(gtexture, texcoord) * glcolor;
@@ -110,31 +111,45 @@ void main() {
 	// Darken shadowed regions
 	float shadowFactor = mix(inShadow, 0.0, ShadowBrightnessAdjusted(lm.x));
 	color.rgb *= mix(vec3(1.0), shadowColor, shadowFactor);
-	
+
 	// Darken with lightmap
 	color.rgb *= mix(lmShadowColor, vec3(1.0), clamp(lm.y + lm.x, 0.0, 1.0));
 
 	// Diffuse lighting
 	float sunDot = clamp(shadowPos.w, 0.0, 1.0);
 	color.rgb *= mix(shadowColor, vec3(1.0), clamp(inShadow + ShadowBrightnessAdjusted(lm.x) + sunDot, 0.0, 1.0));
-	color.rgb *= mix(nightColor, vec3(1.0), clamp(lm.x + GetSunVisibility(), 0.0, 1.0)); // darken overall in night
-	color.rgb *= mix(vec3(1.0), shadowColor, rainStrength * 0.5);
+
+	// Overall darkening for night/rain
+	color.rgb *= mix(nightColor, vec3(1.0), clamp(lm.x + GetSunVisibility(), 0.0, 1.0) * (1.0 - inCave)); // darken for night and cave
+	color.rgb = mix(color.rgb, vec3(dot(vec3(0.2126, 0.7152, 0.0722), color.rgb)), rainStrength * 0.3 * inCave); // desature for rain
+	color.rgb *= mix(vec3(1.0), nightColor, rainStrength * 0.8 * GetSunVisibility() * (1.0 - lm.x) * inCave); // darken for rain
 
 	// Brighten parts in direct sunlight
 	//color.rgb *= mix(GetShadowLightColor(GetSunVisibility(), rainStrength), vec3(1.0), clamp(inShadow + 1.0 - sunDot, 0.0, 1.0));
 
 	// Brighten light from light sources
-	//color.rgb *= mix(vec3(1.0), blockLightTint, lm.x);
-	vec3 blockLight = mix(blockLightColor, vec3(1.0), GetSunVisibility() * 0.8);
+	vec3 blockLight = mix(blockLightColor, vec3(1.0), clamp(GetSunVisibility() * 0.9 - rainStrength, 0.0, 1.0));
 	color.rgb *= mix(vec3(1.0), blockLight, lm.x);
+
+	// Underwater stuff
+	if(isEyeInWater == 1)
+	{
+		color.rgb *= waterTint;
+	}
 
 	// Fog
 	vec3 densities = GetFogDensities(GetSunVisibility(), rainStrength, isEyeInWater);
-	densities = mix(caveFogDensities, densities, lm.y);
-	vec3 fogFactors = (exp(-densities * depth/far) - 1.0) * (1.0 - lm.x*0.6) + 1.0;
+	vec3 fogFactors = (exp(-densities * depth/192.0) - 1.0) * (1.0 - lm.x*0.6) + 1.0;
 	vec3 fogCol = GetLightColor(GetSunVisibility(), rainStrength, isEyeInWater);
-	//fogCol = mix(caveFogColor, fogCol, lm.y);
 	color.rgb = mix(color.rgb, fogCol, pow(1.0 - fogFactors, vec3(2.0)));
+	vec3 fogMask = mix(vec3(0.0), vec3(1.0), pow(1.0 - fogFactors.g, 2.0));
+
+	if(isEyeInWater == 2) {
+		color.rgb = mix(color.rgb, lavaFogColor, clamp(depth*lavaFogDen, 0.0, 1.0));
+	}
+	if(isEyeInWater == 3) {
+		color.rgb = mix(color.rgb, snowFogColor, clamp(depth*snowFogDen, 0.0, 1.0));
+	}
 
 	color.rgb = pow(color.rgb, vec3(1.0/2.2));
 
@@ -150,6 +165,7 @@ void main() {
 	if(water)
 	{
 		outColor1 = vec4(1.0);
+		outColor3 = vec4(vec3((lm.y - (1.0/32.0)) * 32.0 / 30.0), 1.0);
 	} else
 	{
 		outColor1 = vec4(0.0, 0.0, 0.0, 1.0);
