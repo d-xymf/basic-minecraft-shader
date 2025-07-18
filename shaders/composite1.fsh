@@ -79,13 +79,16 @@ void main() {
     float occlusion = float(occluded)/float(SSAO_SAMPLES);
     //occlusion = pow(occlusion * 2.0, 2.0);
 
-    float ao = mix(1.0 - occlusion * SSAO_STRENGTH, 1.0, smoothstep(0.1, 0.4, LinearDepth(depth)));
+    float linDepth = length(ScreenPosToViewPos(vec3(texcoord, depth)))/far;
+    vec2 aoFalloff = mix(vec2(0.1, 0.3), vec2(0.0, 0.1), clamp(rainStrength + float(isEyeInWater), 0.0, 1.0));
+    float ao = mix(1.0 - occlusion * SSAO_STRENGTH, 1.0, smoothstep(aoFalloff.x, aoFalloff.y, linDepth));
     color.rgb *= ao;
 #endif
 
     color.rgb = pow(color.rgb, vec3(1.0/2.2));
 
     outColor0 = color;
+    //outColor0 = vec4(linDepth);
     //outColor0 = vec4(ao);
     //outColor0 = vec4(rand(texcoord.xx));
 }

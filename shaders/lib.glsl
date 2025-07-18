@@ -95,8 +95,9 @@ vec3 GetShadowLightColor(float sunVis, float rain) {
 vec3 GetSkyColor(float sunVis, float rain) {
     vec3 dayCol = vec3(0.1, 0.4, 1.0);
     vec3 sunsetCol = vec3(0.2, 0.2, 0.8);
-    vec3 nightCol = vec3(0.0, 0.01, 0.05);
-    vec3 rainCol = vec3(0.1, 0.12, 0.2);
+    vec3 nightCol = vec3(0.0, 0.005, 0.02);
+    vec3 dayRainCol = vec3(0.1, 0.12, 0.2);
+    vec3 nightRainCol = vec3(0.0, 0.005, 0.02);
 
     vec3 col = vec3(0.0);
 
@@ -108,6 +109,8 @@ vec3 GetSkyColor(float sunVis, float rain) {
         col = mix(nightCol, sunsetCol, sunVis * 2.0);
     }
 
+    vec3 rainCol = mix(nightRainCol, dayRainCol, sunVis);
+
     col = mix(col, rainCol, rain);
 
     return col;
@@ -118,7 +121,8 @@ vec3 GetLightColor(float sunVis, float rain, int underwater) {
     vec3 dayCol = vec3(0.4, 0.8, 1.0);
     vec3 sunsetCol = vec3(1.0, 0.8, 0.2);
     vec3 nightCol = vec3(0.2, 0.25, 0.3);
-    vec3 rainCol = vec3(0.25, 0.28, 0.35);
+    vec3 dayRainCol = vec3(0.25, 0.28, 0.35);
+    vec3 nightRainCol = vec3(0.1, 0.12, 0.19);
     vec3 dayWaterCol = vec3(0.0, 0.1, 0.3);
     vec3 nightWaterCol = vec3(0.0, 0.0, 0.02);
 
@@ -131,6 +135,8 @@ vec3 GetLightColor(float sunVis, float rain, int underwater) {
     {
         light = mix(nightCol, sunsetCol, sunVis * 2.0);
     }
+
+    vec3 rainCol = mix(nightRainCol, dayRainCol, sunVis);
 
     light = mix(light, rainCol, rain);
 
@@ -146,7 +152,7 @@ vec3 GetFogDensities(float sunVis, float rain, int underwater) {
     vec3 dayDen = vec3(0.8, 0.6, 1.2);
     vec3 sunsetDen = vec3(0.8, 0.6, 1.2);
     vec3 nightDen = vec3(0.4, 0.5, 0.7);
-    vec3 rainDen = vec3(3.0, 2.4, 2.0);
+    vec3 rainDen = vec3(5.0, 4.5, 5.0);
     vec3 waterDen = vec3(12.0, 8.0, 10.0);
 
     vec3 fog = vec3(0.0);

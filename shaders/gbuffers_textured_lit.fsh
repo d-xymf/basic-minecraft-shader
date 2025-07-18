@@ -123,7 +123,7 @@ void main() {
 
 	// Fog
 	vec3 densities = GetFogDensities(GetSunVisibility(), rainStrength, isEyeInWater);
-	densities = mix(caveFogDensities, densities, lm.y);
+	//densities = mix(caveFogDensities, densities, lm.y);
 	vec3 fogFactors = (exp(-densities * depth/far) - 1.0) * (1.0 - lm.x*0.6) + 1.0;
 	vec3 fogCol = GetLightColor(GetSunVisibility(), rainStrength, isEyeInWater);
 	//fogCol = mix(caveFogColor, fogCol, lm.y);
