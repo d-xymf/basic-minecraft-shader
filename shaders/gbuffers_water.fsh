@@ -1,14 +1,9 @@
 #version 460 compatibility
 
-#define COLORED_SHADOWS 1
-
 uniform float alphaTestRef = 0.1;
 uniform float worldTime;
 
 uniform sampler2D lightmap;
-uniform sampler2D shadowcolor0;
-uniform sampler2D shadowtex0;
-uniform sampler2D shadowtex1;
 uniform sampler2D gtexture;
 uniform float frameTimeCounter;
 
@@ -29,6 +24,7 @@ const bool shadowtex1Nearest = true;
 #include "distort.glsl"
 #include "lib.glsl"
 #include "waves.glsl"
+#include "shadow.glsl"
 
 /* DRAWBUFFERS: 041 */
 layout(location = 0) out vec4 outColor0;
@@ -55,36 +51,28 @@ void main() {
 	}
 	if (shadowPos.w > 0.0) {
 		//surface is facing towards shadowLightPosition
-		#if COLORED_SHADOWS == 0
-			//for normal shadows, only consider the closest thing to the sun,
-			//regardless of whether or not it's opaque.
-			if (texture2D(shadowtex0, shadowPos.xy).r < shadowPos.z) {
-		#else
-			//for invisible and colored shadows, first check the closest OPAQUE thing to the sun.
-			if (texture2D(shadowtex1, shadowPos.xy).r < shadowPos.z) {
-		#endif
-			//surface is in shadows. reduce light level.
-			inShadow = 1.0;
+		inShadow = GetShadow();
+
+	#ifdef COLORED_SHADOWS
+		//when colored shadows are enabled and there's something translucent between the sun and the nearest opaque thing.
+		float shadowDepth0 = texture2D(shadowtex0, shadowPos.xy).r;
+		float shadowDepth1 = texture2D(shadowtex1, shadowPos.xy).r;
+		if (shadowDepth0 < shadowDepth1) {
+			//surface has translucent object between it and the sun. modify its color.
+			//if the block light is high, modify the color less.
+			vec4 shadowLightColor = texture2D(shadowcolor0, shadowPos.xy);
+			shadowLightColor.rgb = pow(shadowLightColor.rgb, vec3(2.2));
+			//make colors more intense when the shadow light color is more opaque.
+			shadowLightColor.rgb = mix(vec3(1.0), shadowLightColor.rgb, clamp(shadowLightColor.a * 2.0, 0.0, 1.0));
+			//also make colors less intense when the block light level is high.
+			shadowLightColor.rgb = mix(shadowLightColor.rgb, vec3(1.0), lm.x);
+			//apply the color.
+			float shadowFactor = 1.0 - ShadowBrightnessAdjusted(lm.x);
+			vec3 shadowTint = mix(vec3(1.0), shadowLightColor.rgb, shadowFactor);
+			shadowTint = mix(shadowTint, vec3(1.0), inShadow);
+			color.rgb *= shadowTint;
 		}
-		else {
-			//surface is in direct sunlight. increase light level.
-			#if COLORED_SHADOWS == 1
-				//when colored shadows are enabled and there's nothing OPAQUE between us and the sun,
-				//perform a 2nd check to see if there's anything translucent between us and the sun.
-				if (texture2D(shadowtex0, shadowPos.xy).r < shadowPos.z) {
-					//surface has translucent object between it and the sun. modify its color.
-					//if the block light is high, modify the color less.
-					vec4 shadowLightColor = texture2D(shadowcolor0, shadowPos.xy);
-					shadowLightColor.rgb = pow(shadowLightColor.rgb, vec3(2.2));
-					//make colors more intense when the shadow light color is more opaque.
-					shadowLightColor.rgb = mix(vec3(1.0), shadowLightColor.rgb, shadowLightColor.a);
-					//also make colors less intense when the block light level is high.
-					shadowLightColor.rgb = mix(shadowLightColor.rgb, vec3(1.0), lm.x);
-					//apply the color.
-					color.rgb *= shadowLightColor.rgb;
-				}
-			#endif
-		}
+	#endif
 	}
 
 	bool water = abs(blockId - 10060.0) < 0.1;
