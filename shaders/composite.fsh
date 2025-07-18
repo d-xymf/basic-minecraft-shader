@@ -113,9 +113,9 @@ void main() {
 
 		// Phong specular highlights
 		vec3 lightDirection = normalize(ViewPosToEyePos(shadowLightPosition));
-		vec3 specular = 0.5*GetShadowLightColor(sunVis, rainStrength) * smoothstep(0.98 - sunVis*0.04, 1.0, dot(rayDir, lightDirection));
+		vec3 specular = GetShadowLightColor(sunVis, rainStrength) * smoothstep(0.98 - sunVis*0.04, 1.0, dot(rayDir, lightDirection));
 		//debug = vec3(eyePos);
-		color.rgb += mix(specular * (1.0 - hit), vec3(0.0), rainStrength);
+		color.rgb += mix(specular * (1.0 - hit), vec3(0.0), rainStrength) * reflectionFactor;
 
 		// Fog
 		vec3 densities = GetFogDensities(sunVis, rainStrength, isEyeInWater);

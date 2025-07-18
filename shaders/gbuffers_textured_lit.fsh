@@ -123,10 +123,8 @@ void main() {
 
 	// Fog
 	vec3 densities = GetFogDensities(GetSunVisibility(), rainStrength, isEyeInWater);
-	//densities = mix(caveFogDensities, densities, lm.y);
 	vec3 fogFactors = (exp(-densities * depth/far) - 1.0) * (1.0 - lm.x*0.6) + 1.0;
 	vec3 fogCol = GetLightColor(GetSunVisibility(), rainStrength, isEyeInWater);
-	//fogCol = mix(caveFogColor, fogCol, lm.y);
 	color.rgb = mix(color.rgb, fogCol, pow(1.0 - fogFactors, vec3(2.0)));
 
 	if(isEyeInWater == 2) {
@@ -139,6 +137,7 @@ void main() {
 	color.rgb = pow(color.rgb, vec3(1.0/2.2));
 
 	outColor0 = color;
+	//outColor0 = vec4(lm, 0.0, 1.0);
 	//outColor0 = vec4(shadowPos.xyz, 1.0);
 	//outColor0 = texture2D(lightmap, vec2(31.0/32.0, lm.y));
 	outColor1 = vec4(normal * 0.5 + 0.5, 1.0);
