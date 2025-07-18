@@ -102,7 +102,7 @@ vec3 GetSkyColor(float sunVis, float rain) {
     vec3 dayCol = vec3(0.1, 0.4, 1.0);
     vec3 sunsetCol = vec3(0.2, 0.2, 0.8);
     vec3 nightCol = vec3(0.0, 0.005, 0.02);
-    vec3 dayRainCol = vec3(0.1, 0.12, 0.2);
+    vec3 dayRainCol = vec3(0.05, 0.06, 0.1);
     vec3 nightRainCol = vec3(0.0, 0.005, 0.02);
 
     vec3 col = vec3(0.0);

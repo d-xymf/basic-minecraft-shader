@@ -119,16 +119,16 @@ void main() {
 	float sunDot = clamp(shadowPos.w, 0.0, 1.0);
 	color.rgb *= mix(shadowColor, vec3(1.0), clamp(inShadow + ShadowBrightnessAdjusted(lm.x) + sunDot, 0.0, 1.0));
 
-	// Overall darkening for night/rain
+	// Overall darkening for night/cave/rain
 	color.rgb *= mix(nightColor, vec3(1.0), clamp(lm.x + GetSunVisibility()*(1.0 - inCave), 0.0, 1.0)); // darken for night and cave
-	color.rgb = mix(color.rgb, vec3(dot(vec3(0.2126, 0.7152, 0.0722), color.rgb)), rainStrength * 0.3 * inCave); // desature for rain
-	color.rgb *= mix(vec3(1.0), nightColor, rainStrength * 0.8 * GetSunVisibility() * (1.0 - lm.x) * inCave); // darken for rain
+	color.rgb = mix(color.rgb, vec3(dot(vec3(0.2126, 0.7152, 0.0722), color.rgb)), rainStrength * 0.5 * (1.0 - inCave) * (1.0 - lm.x)); // desature for rain
+	color.rgb *= mix(vec3(1.0), nightColor, rainStrength * 1.0 * GetSunVisibility() * (1.0 - lm.x) * (1.0 - inCave)); // darken for rain
 
 	// Brighten parts in direct sunlight
 	//color.rgb *= mix(GetShadowLightColor(GetSunVisibility(), rainStrength), vec3(1.0), clamp(inShadow + 1.0 - sunDot, 0.0, 1.0));
 
 	// Brighten light from light sources
-	vec3 blockLight = mix(blockLightColor, vec3(1.0), clamp(GetSunVisibility() * 0.9 - rainStrength - inCave, 0.0, 1.0));
+	vec3 blockLight = mix(blockLightColor, vec3(1.0), clamp(GetSunVisibility() * 0.9 - rainStrength * 1.0 - inCave, 0.0, 1.0));
 	color.rgb *= mix(vec3(1.0), blockLight, lm.x);
 
 	// Underwater stuff
