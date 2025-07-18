@@ -27,9 +27,10 @@ const float snowFogDen = 0.5;
 #include "/lib.glsl"
 #include "shadow.glsl"
 
-/* DRAWBUFFERS: 01 */
+/* DRAWBUFFERS: 015 */
 layout(location = 0) out vec4 outColor0;
 layout(location = 1) out vec4 outColor1;
+layout(location = 2) out vec4 outColor2;
 
 void main() {
 	vec4 color = texture(gtexture, texcoord) * glcolor;
@@ -73,6 +74,12 @@ void main() {
 			color.rgb *= shadowTint;
 		}
 	#endif
+	}
+
+
+	// Adjust normals for raining
+	if(dot(normal, vec3(0.0, 1.0, 0.0)) > 0.95) {
+		//color = vec4(1.0);
 	}
 
 
@@ -135,4 +142,5 @@ void main() {
 	//outColor0 = vec4(shadowPos.xyz, 1.0);
 	//outColor0 = texture2D(lightmap, vec2(31.0/32.0, lm.y));
 	outColor1 = vec4(normal * 0.5 + 0.5, 1.0);
+	//outColor2 = vec4(0.5 * dot(normal, vec3(0.0, 1.0, 0.0)));
 }
