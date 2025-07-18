@@ -152,7 +152,7 @@ void main() {
 		outColor1 = vec4(1.0);
 	} else
 	{
-		outColor1 = vec4(0.0);
+		outColor1 = vec4(0.0, 0.0, 0.0, 1.0);
 	}
 
 	outColor2 = vec4(waveNormal * 0.5 + 0.5, 1.0);
