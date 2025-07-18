@@ -1,6 +1,6 @@
 #version 330 compatibility
 
-#define SSR
+#define SSR_ENABLED
 
 uniform sampler2D gtexture;
 uniform sampler2D colortex0;
@@ -70,7 +70,7 @@ void main() {
 
 		vec3 reflection = calcSkyColor(EyePosToViewPos(rayDir));
 	
-	#ifdef SSR
+	#ifdef SSR_ENABLED
 		// Ray marching SSR
 		for(int i = 0; i < 100; i++) {
 			vec3 rayScreenPos = ViewPosToScreenPos(EyePosToViewPos(rayPos));
@@ -146,7 +146,7 @@ void main() {
 
 		vec3 reflection = calcSkyColor(EyePosToViewPos(rayDir));
 	
-	#ifdef SSR
+	#ifdef SSR_ENABLED
 		// Ray marching SSR
 		for(int i = 0; i < 100; i++) {
 			vec3 rayScreenPos = ViewPosToScreenPos(EyePosToViewPos(rayPos));

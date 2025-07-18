@@ -1,9 +1,9 @@
 #version 330 compatibility
 
 #define SSAO_ENABLED
-#define SSAO_SAMPLES 100
-#define SSAO_RADIUS 0.3
-#define SSAO_STRENGTH 1.0
+#define SSAO_SAMPLES 100 //[25 50 75 100 125 150]
+#define SSAO_RADIUS 0.3 //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
+#define SSAO_STRENGTH 1.0 //[0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0]
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex1;
