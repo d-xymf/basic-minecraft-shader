@@ -24,8 +24,8 @@ const vec3 blockLightTint = vec3(1.5, 0.8, 0.2);
 const vec3 shadowColor = vec3(0.2, 0.2, 0.3);
 const vec3 lmShadowColor = vec3(0.0, 0.0, 0.0);
 const vec3 nightColor = vec3(0.01, 0.02, 0.1);
-const vec3 sunsetOrange = vec3(1.0, -0.1, -0.4);
-const vec3 sunsetYellow = vec3(0.5, 0.1, -0.2);
+const vec3 sunsetOrange = vec3(1.0, 0.1, -0.2);
+const vec3 sunsetYellow = vec3(0.5, 0.1, -0.1);
 const vec3 caveFogColor = vec3(0.2, 0.25, 0.3);
 const vec3 caveFogDensities = vec3(0.4, 0.5, 0.7);
 
@@ -116,7 +116,7 @@ vec3 GetSkyColor(float sunVis, float rain) {
 // Dynamic sky light color depending on daytime, rain, etc
 vec3 GetLightColor(float sunVis, float rain, int underwater) {
     vec3 dayCol = vec3(0.4, 0.8, 1.0);
-    vec3 sunsetCol = vec3(0.7, 0.5, 0.4);
+    vec3 sunsetCol = vec3(1.0, 0.8, 0.2);
     vec3 nightCol = vec3(0.2, 0.25, 0.3);
     vec3 rainCol = vec3(0.25, 0.28, 0.35);
     vec3 dayWaterCol = vec3(0.0, 0.1, 0.3);
@@ -166,6 +166,31 @@ vec3 GetFogDensities(float sunVis, float rain, int underwater) {
     }
 
     return fog;
+}
+
+float fogify(float x, float w) {
+	return w / (x * x + w);
+}
+
+vec3 calcSkyColor(vec3 pos) {
+	float upDot = dot(pos, gbufferModelView[1].xyz); //not much, what's up with you?
+	float sunDot = dot(normalize(pos), normalize(sunPosition));
+	float sunVis = GetSunVisibility();
+
+	vec3 lightCol = GetLightColor(sunVis, rainStrength, isEyeInWater);
+	vec3 fogDensities = GetFogDensities(sunVis, rainStrength, isEyeInWater);
+	vec3 skyFogColor = mix(lightCol, GetSkyColor(sunVis, rainStrength), exp(-fogDensities));
+
+	vec3 sky = mix(GetSkyColor(sunVis, rainStrength), skyFogColor, fogify(max(upDot, 0.0), 0.25));
+
+	float sunset = 1.0 - 2.0 * abs(sunVis - 0.5);
+	sunset *= 1.0 - rainStrength;
+
+	sky += sunsetOrange * vec3(exp((sunDot - 1.0) * 1.0)) * sunset;
+
+	sky += sunsetYellow * vec3(exp((sunDot - 1.0) * 7.0)) * sunset;
+	
+	return sky;
 }
 
 // ---------------------------------------------- Coordinate space conversions ----------------------------------------------

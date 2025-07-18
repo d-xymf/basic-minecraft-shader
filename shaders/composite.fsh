@@ -9,7 +9,6 @@ uniform sampler2D colortex4;
 uniform sampler2D colortex5;
 uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
-uniform vec3 skyColor;
 
 in vec2 texcoord;
 
@@ -22,32 +21,8 @@ float LinearDepth(float z) {
     return 1.0 / ((1 - far / near) * z + (far / near));
 }
 
-float fogify(float x, float w) {
-	return w / (x * x + w);
-}
-
 float luminosity(vec3 color) {
 	return dot(color, vec3(0.213, 0.715, 0.072));
-}
-
-vec3 calcSkyColor(vec3 pos) {
-	float upDot = dot(pos, gbufferModelView[1].xyz); //not much, what's up with you?
-	float sunDot = dot(normalize(pos), normalize(sunPosition));
-	float sunVis = GetSunVisibility();
-
-	vec3 lightCol = GetLightColor(sunVis, rainStrength, isEyeInWater);
-	vec3 fogDensities = GetFogDensities(sunVis, rainStrength, isEyeInWater);
-	vec3 skyFogColor = mix(lightCol, skyColor, exp(-fogDensities));
-
-	vec3 sky = mix(GetSkyColor(sunVis, rainStrength), skyFogColor, fogify(max(upDot, 0.0), 0.25));
-
-	float sunset = 1.0 - 2.0 * abs(sunVis - 0.5);
-
-	sky += sunsetOrange * vec3(exp((sunDot - 1.0) * 1.0)) * sunset;
-
-	sky += sunsetYellow * vec3(exp((sunDot - 1.0) * 7.0)) * sunset;
-	
-	return sky;
 }
 
 void main() {
