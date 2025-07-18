@@ -92,7 +92,7 @@ void main() {
 			// Calculate normal vector based on derivatives
 			vec3 xtan = vec3(1.0, xderiv, 0.0);
 			vec3 ztan = vec3(0.0, zderiv, 1.0);
-			waveNormal = normalize(cross(ztan, xtan));
+			waveNormal = normalize(cross(ztan, xtan)) * sign(dot(waveNormal, vec3(0.0, 1.0, 0.0)));
 		}
 	}
 
