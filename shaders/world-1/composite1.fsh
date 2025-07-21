@@ -13,7 +13,7 @@ uniform sampler2D noisetex;
 
 in vec2 texcoord;
 
-#include "lib.glsl"
+#include "/world-1/lib_world-1.glsl"
 
 float LinearDepth(float z) {
     return 1.0 / ((1 - far / near) * z + (far / near));

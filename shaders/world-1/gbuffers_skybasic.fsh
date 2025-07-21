@@ -6,7 +6,7 @@ uniform float viewWidth;
 
 in vec4 glcolor;
 
-#include "lib.glsl"
+#include "/world-1/lib_world-1.glsl"
 
 vec3 screenToView(vec3 screenPos) {
 	vec4 ndcPos = vec4(screenPos, 1.0) * 2.0 - 1.0;

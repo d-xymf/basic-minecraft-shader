@@ -13,7 +13,7 @@ out vec3 vertexPosition;
 out float depth;
 out vec3 normal;
 
-#include "lib.glsl"
+#include "/world-1/lib_world-1.glsl"
 
 void main() {
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;

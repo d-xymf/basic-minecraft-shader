@@ -12,7 +12,7 @@ in vec3 vertexPosition;
 in float depth;
 in vec3 normal;
 
-#include "lib.glsl"
+#include "/world-1/lib_world-1.glsl"
 
 /* DRAWBUFFERS: 016 */
 layout(location = 0) out vec4 outColor0;

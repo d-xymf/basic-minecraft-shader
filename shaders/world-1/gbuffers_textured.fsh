@@ -9,7 +9,7 @@ in vec2 lmcoord;
 in vec2 texcoord;
 in vec4 glcolor;
 
-#include "lib.glsl"
+#include "/world-1/lib_world-1.glsl"
 
 /* RENDERTARGETS: 0 */
 layout(location = 0) out vec4 outColor0;

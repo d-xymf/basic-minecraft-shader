@@ -16,7 +16,7 @@ in float depth;
 in vec3 normal;
 in float blockId;
 
-#include "lib.glsl"
+#include "/world-1/lib_world-1.glsl"
 
 /* DRAWBUFFERS: 01 */
 layout(location = 0) out vec4 outColor0;
