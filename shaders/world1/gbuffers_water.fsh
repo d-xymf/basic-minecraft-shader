@@ -76,6 +76,9 @@ void main() {
 	// Darken with lightmap
 	color.rgb *= mix(lmShadowColor, vec3(1.0), clamp(lm.y + lm.x, 0.0, 1.0));
 
+	// Diffuse lighting kinda
+	color.rgb *= mix(lmShadowColor, vec3(1.0), clamp(dot(normal, vec3(0.0, 1.0, 0.0)) + lm.x, 0.4, 1.0));
+
 	// Brighten parts in direct sunlight
 	//color.rgb *= mix(GetShadowLightColor(GetSunVisibility(), rainStrength), vec3(1.0), clamp(inShadow + 1.0 - sunDot, 0.0, 1.0));
 
