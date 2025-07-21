@@ -81,7 +81,7 @@ void main() {
     //occlusion = pow(occlusion * 2.0, 2.0);
 
     float linDepth = length(ScreenPosToViewPos(vec3(texcoord, depth)))/far;
-    vec2 aoFalloff = mix(vec2(0.1, 0.4), vec2(0.03, 0.12), clamp(rainStrength + float(isEyeInWater), 0.0, 1.0));
+    vec2 aoFalloff = mix(vec2(0.1, 0.4), vec2(0.0, 0.1), clamp(rainStrength + float(isEyeInWater), 0.0, 1.0));
     aoFalloff *= 1.0 - texture(colortex6, texcoord).r;
     float ao = mix(1.0 - occlusion * SSAO_STRENGTH, 1.0, smoothstep(aoFalloff.x, aoFalloff.y, linDepth));
     color.rgb *= ao;
